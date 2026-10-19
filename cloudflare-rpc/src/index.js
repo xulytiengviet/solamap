@@ -12,7 +12,7 @@ async function doRead(body,env){const errors=[];for(const url of [env.SOLANA_RPC
 export default {async fetch(request,env){
  const url=new URL(request.url);
  if(request.method==="OPTIONS"){if(!allowedOrigin(request))return new Response(null,{status:403});return new Response(null,{status:204,headers})}
- if(url.pathname==="/health"&&request.method==="GET")return reply({service:"solamap-rpc",configured:!!env.SOLANA_RPC_PRIMARY,network:"mainnet-beta"});
+ if((url.pathname==="/health"||url.pathname==="/")&&request.method==="GET")return reply({service:"solamap-rpc",version:"2026-10-19.2",status:"deployed",configured:!!env.SOLANA_RPC_PRIMARY,backupConfigured:!!env.SOLANA_RPC_BACKUP,network:"mainnet-beta",rpcPath:"/rpc",warning:"configured means secret exists, not that upstream is healthy"});
  if(request.method!=="POST"||url.pathname!=="/rpc")return reply({error:"Not found"},404);
  if(!allowedOrigin(request))return reply({error:"Origin not allowed"},403);
  if(Number(request.headers.get("Content-Length")||0)>16000)return reply({error:"Payload too large"},413);
