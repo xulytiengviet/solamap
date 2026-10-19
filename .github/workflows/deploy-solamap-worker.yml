@@ -30,6 +30,47 @@ jobs:
             fi
           done
           [[ "$PRIMARY_RPC" == https://* && "$BACKUP_RPC" == https://* ]] || { echo "::error::RPC endpoints must use HTTPS"; exit 1; }
+          if [[ "$CLOUDFLARE_API_TOKEN" == *
+      - name: Deploy worker from its own Wrangler config
+        working-directory: cloudflare-rpc
+        run: npx --yes wrangler@4 deploy --config wrangler.toml
+      - name: Install upstream RPC secrets into Cloudflare Worker
+        working-directory: cloudflare-rpc
+        shell: bash
+        run: |
+          printf '%s' "$PRIMARY_RPC" | npx --yes wrangler@4 secret put SOLANA_RPC_PRIMARY --config wrangler.toml
+          printf '%s' "$BACKUP_RPC" | npx --yes wrangler@4 secret put SOLANA_RPC_BACKUP --config wrangler.toml
+      - name: Health-check deployment (non-secret response only)
+        shell: bash
+        run: |
+          curl -fsS --retry 3 --retry-delay 3 https://solamap.bilabot-cvnss4-71bd4651.workers.dev/health
+\\n'* || "$CLOUDFLARE_API_TOKEN" == *
+      - name: Deploy worker from its own Wrangler config
+        working-directory: cloudflare-rpc
+        run: npx --yes wrangler@4 deploy --config wrangler.toml
+      - name: Install upstream RPC secrets into Cloudflare Worker
+        working-directory: cloudflare-rpc
+        shell: bash
+        run: |
+          printf '%s' "$PRIMARY_RPC" | npx --yes wrangler@4 secret put SOLANA_RPC_PRIMARY --config wrangler.toml
+          printf '%s' "$BACKUP_RPC" | npx --yes wrangler@4 secret put SOLANA_RPC_BACKUP --config wrangler.toml
+      - name: Health-check deployment (non-secret response only)
+        shell: bash
+        run: |
+          curl -fsS --retry 3 --retry-delay 3 https://solamap.bilabot-cvnss4-71bd4651.workers.dev/health
+\\r'* ]]; then
+            echo "::error::CLOUDFLARE_API_TOKEN contains a newline or carriage return. Copy only the token value (one line) and update GitHub Secret."
+            exit 1
+          fi
+          if [[ "$CLOUDFLARE_API_TOKEN" =~ [[:space:]] ]]; then
+            echo "::error::CLOUDFLARE_API_TOKEN contains whitespace. Remove spaces and tabs; paste only the token value."
+            exit 1
+          fi
+          if [[ ! "$CLOUDFLARE_ACCOUNT_ID" =~ ^[[:xdigit:]]{32}$ ]]; then
+            echo "::error::CLOUDFLARE_ACCOUNT_ID must be the 32-character hexadecimal account identifier (no URL or extra text)."
+            exit 1
+          fi
+          echo "Secrets present; token and account ID format checks passed."
       - name: Deploy worker from its own Wrangler config
         working-directory: cloudflare-rpc
         run: npx --yes wrangler@4 deploy --config wrangler.toml
