@@ -7,7 +7,8 @@ const headers = {"Access-Control-Allow-Origin":ORIGIN,"Access-Control-Allow-Meth
 const reply=(body,status=200,extra={})=>new Response(JSON.stringify(body),{status,headers:{"Content-Type":"application/json;charset=utf-8",...headers,...extra}});
 const allowedOrigin=request=>request.headers.get("Origin")===ORIGIN;
 async function upstream(endpoint,payload){const ctr=new AbortController(),timer=setTimeout(()=>ctr.abort(),8000);try{const r=await fetch(endpoint,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(payload),signal:ctr.signal});if(!r.ok)throw Error("Upstream HTTP "+r.status);const text=await r.text();if(text.length>1000000)throw Error("Upstream response too large");const data=JSON.parse(text);if(data?.error?.code===429)throw Error("Upstream rate limited");return data}finally{clearTimeout(timer)}}
-async function checkedEndpoint(url){const res=await upstream(url,{jsonrpc:"2.0",id:1,method:"getGenesisHash",params:[]});if(res.result!==MAINNET_GENESIS)throw Error("Upstream RPC is not Solana Mainnet");return url}
+const genesisCache=new Map();
+async function checkedEndpoint(url){const cached=genesisCache.get(url);if(cached&&Date.now()-cached<300000)return url;const res=await upstream(url,{jsonrpc:"2.0",id:1,method:"getGenesisHash",params:[]});if(res.result!==MAINNET_GENESIS)throw Error("Upstream RPC is not Solana Mainnet");genesisCache.set(url,Date.now());return url}
 async function doRead(body,env){const errors=[];for(const url of [env.SOLANA_RPC_PRIMARY,env.SOLANA_RPC_BACKUP].filter(Boolean)){try{await checkedEndpoint(url);return await upstream(url,body)}catch(e){errors.push(String(e.message||e))}}throw Error("No Mainnet RPC available: "+errors.join(" | "))}
 export default {async fetch(request,env){
  const url=new URL(request.url);
