@@ -20,39 +20,35 @@ jobs:
       BACKUP_RPC: ${{ secrets.SOLANA_RPC_BACKUP }}
     steps:
       - uses: actions/checkout@v5
-      - name: Check required secrets without printing them
+      - name: Validate required secrets safely
         shell: bash
         run: |
           for name in CLOUDFLARE_API_TOKEN CLOUDFLARE_ACCOUNT_ID PRIMARY_RPC BACKUP_RPC; do
             if [[ -z "${!name}" ]]; then
-              echo "::error::Missing GitHub Actions secret mapped to $name"
+              echo "::error::Missing required secret mapped to $name"
               exit 1
             fi
           done
-          [[ "$PRIMARY_RPC" == https://* && "$BACKUP_RPC" == https://* ]] || { echo "::error::RPC endpoints must use HTTPS"; exit 1; }
-          if [[ "$CLOUDFLARE_API_TOKEN" == *$'\n'* || "$CLOUDFLARE_API_TOKEN" == *$'\r'* ]]; then
-            echo "::error::CLOUDFLARE_API_TOKEN contains a line break. Copy only the token value and update GitHub Secret."
+          [[ "$PRIMARY_RPC" == https://* && "$BACKUP_RPC" == https://* ]] || { echo "::error::RPC URLs must use HTTPS"; exit 1; }
+          if ! [[ "$CLOUDFLARE_ACCOUNT_ID" =~ ^[[:xdigit:]]{32}$ ]]; then
+            echo "::error::CLOUDFLARE_ACCOUNT_ID must contain exactly 32 hexadecimal characters"
             exit 1
           fi
           if [[ "$CLOUDFLARE_API_TOKEN" =~ [[:space:]] ]]; then
-            echo "::error::CLOUDFLARE_API_TOKEN contains whitespace. Remove spaces and tabs; paste only the token value."
+            echo "::error::CLOUDFLARE_API_TOKEN contains whitespace/newline. Copy only the one-line token value into GitHub Secrets."
             exit 1
           fi
-          if [[ ! "$CLOUDFLARE_ACCOUNT_ID" =~ ^[[:xdigit:]]{32}$ ]]; then
-            echo "::error::CLOUDFLARE_ACCOUNT_ID must be the 32-character hexadecimal account identifier (no URL or extra text)."
-            exit 1
-          fi
-          echo "Secrets present; token and account ID format checks passed."
-      - name: Deploy worker from its own Wrangler config
+          echo "Secrets are present and formatted correctly"
+      - name: Deploy worker from Wrangler config
         working-directory: cloudflare-rpc
         run: npx --yes wrangler@4 deploy --config wrangler.toml
-      - name: Install upstream RPC secrets into Cloudflare Worker
+      - name: Install upstream RPC secrets
         working-directory: cloudflare-rpc
         shell: bash
         run: |
           printf '%s' "$PRIMARY_RPC" | npx --yes wrangler@4 secret put SOLANA_RPC_PRIMARY --config wrangler.toml
           printf '%s' "$BACKUP_RPC" | npx --yes wrangler@4 secret put SOLANA_RPC_BACKUP --config wrangler.toml
-      - name: Health-check deployment (non-secret response only)
+      - name: Health check
         shell: bash
         run: |
           curl -fsS --retry 3 --retry-delay 3 https://solamap.bilabot-cvnss4-71bd4651.workers.dev/health
