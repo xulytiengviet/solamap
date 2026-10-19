@@ -24,4 +24,4 @@ export default {async fetch(request,env){
   const result=isWrite?await (async()=>{const p=await checkedEndpoint(env.SOLANA_RPC_PRIMARY);return await upstream(p,body)})():await doRead(body,env);
   return reply(result);
  }catch(e){return reply({jsonrpc:"2.0",id:body.id??null,error:{code:-32000,message:"RPC unavailable: "+String(e.message||e).slice(0,260)}},503)}
-}}};
+}};
