@@ -2,7 +2,7 @@
 // Upstream URLs are secrets. No wallet secret or mnemonic may be submitted.
 const ORIGIN = "https://xulytiengviet.github.io";
 const ALLOWED = new Set(["getGenesisHash","getHealth","getSlot","getVersion","getBalance","getAccountInfo","getSignatureStatuses","getSignaturesForAddress","getParsedTransaction","getTransaction","getLatestBlockhash","getFeeForMessage","getBlockHeight","getMinimumBalanceForRentExemption","simulateTransaction","sendTransaction"]);
-const MAINNET_GENESIS = "5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp";
+const MAINNET_GENESIS = "5eykt4UsFv8P8NJdTREpY1vzqKqZKvdpKuc147dw2N9d";
 const headers = {"Access-Control-Allow-Origin":ORIGIN,"Access-Control-Allow-Methods":"POST,OPTIONS,GET","Access-Control-Allow-Headers":"Content-Type, Accept, Solana-Client, X-Solana-Client","Vary":"Origin","Cache-Control":"no-store","X-Content-Type-Options":"nosniff"};
 const reply=(body,status=200,extra={})=>new Response(JSON.stringify(body),{status,headers:{"Content-Type":"application/json;charset=utf-8",...headers,...extra}});
 const allowedOrigin=request=>request.headers.get("Origin")===ORIGIN;
