@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="vi"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#101b29"><title>SolaMap · Solana Web3 Lab</title>
+<style>
+:root{font-family:Inter,system-ui,-apple-system,"Segoe UI",sans-serif;color:#e8f4f4;background:#08121e}*{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at 80% 0%,#173d45 0%,#08121e 44%);min-height:100vh}a{color:#7ee4d0}button,input,textarea,select{font:inherit}button{cursor:pointer;border:0;border-radius:10px;padding:11px 16px;background:#52ddbb;color:#092124;font-weight:750}button:hover{filter:brightness(1.08)}button:disabled{opacity:.5;cursor:not-allowed}.secondary{background:#233748;color:#e3f2f3}.danger{background:#71393e;color:#fff}input,textarea,select{width:100%;background:#0a1d2c;color:#f0fafa;border:1px solid #345269;border-radius:9px;padding:11px;margin:6px 0 13px}textarea{min-height:112px;resize:vertical}label{display:block;font-size:13px;color:#abc3cc}.app{max-width:1350px;margin:auto;padding:24px}.top{display:flex;justify-content:space-between;gap:20px;align-items:center;flex-wrap:wrap}.brand{font-size:25px;font-weight:900}.brand b{color:#5fe2c1}.tag{font-size:12px;color:#a9c5cf}.hero{margin:24px 0;padding:30px;border-radius:20px;border:1px solid #35556b;background:linear-gradient(115deg,#173a47,#0f2032)}h1{font-size:clamp(26px,4vw,43px);margin:8px 0}h2{font-size:19px;margin:0 0 18px}p{color:#b4cbd5;line-height:1.55}.pill{display:inline-block;background:#254b48;color:#7ff0ce;border-radius:30px;padding:6px 11px;font-size:12px}.layout{display:grid;grid-template-columns:270px minmax(0,1fr);gap:20px}.nav{border:1px solid #29465a;background:#102435;border-radius:16px;padding:14px;align-self:start}.nav button{display:block;width:100%;margin-bottom:9px;text-align:left;background:transparent;color:#c9e1e7}.nav button.active{background:#28535c;color:#afffee}.main{min-width:0}.panel{border:1px solid #29465a;background:#102435;border-radius:16px;padding:23px;margin-bottom:17px}.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:17px}.stat{background:#122f3b;border-radius:12px;padding:17px}.stat span{color:#a6c1c9;font-size:13px}.stat strong{display:block;margin-top:10px;font-size:21px;word-break:break-all}.actions{display:flex;gap:10px;flex-wrap:wrap;margin:9px 0}.small{font-size:12px;color:#9ab9c1}.notice{padding:12px 15px;border-left:3px solid #f9ca71;background:#363328;color:#fae9c0;border-radius:7px;margin:12px 0}.ok{border-left-color:#56e5b4;background:#1c3b39;color:#9bf4d5}.error{border-left-color:#f68f99;background:#452b35;color:#ffd0d6}.mono,code,pre{font-family:ui-monospace,SFMono-Regular,Consolas,monospace;overflow-wrap:anywhere}.mono{font-size:13px;color:#aeead7}pre{background:#071726;border:1px solid #2f4b61;border-radius:9px;padding:15px;overflow:auto}#code{height:340px;font-family:ui-monospace,Consolas,monospace;font-size:13px;white-space:pre;tab-size:2}.hidden{display:none!important}footer{text-align:center;margin:32px 0;color:#819caa;font-size:12px}li{margin:7px 0;color:#bbd3dc}@media(max-width:800px){.layout{grid-template-columns:1fr}.grid{grid-template-columns:1fr}.app{padding:12px}.hero{padding:20px}.panel{padding:17px}.nav{display:flex;gap:5px;overflow:auto}.nav button{min-width:115px;margin:0}}
+</style></head><body><div class="app">
+<header class="top"><div><div class="brand">◎ Sola<b>Map</b> <span class="tag">Web3 · Dev Lab</span></div><div class="small">Học tập Solana, giao dịch và phát triển program trên trình duyệt</div></div><div><label for="network">Mạng Solana</label><select id="network" style="width:190px"><option value="devnet">Devnet · Thử nghiệm</option><option value="testnet">Testnet</option><option value="mainnet-beta">Mainnet · Thận trọng</option></select></div></header>
+<section class="hero"><span class="pill">SOLANA · WEB3 · VIỆT NAM</span><h1>Ví Solana và xưởng phát triển<br>hợp đồng thông minh</h1><p>Tạo ví thử nghiệm, ký giao dịch, lưu nội dung qua Memo Program, kiểm tra program đã triển khai và chuyển sang môi trường Solana Playground để biên dịch / triển khai Rust hoặc Anchor.</p><div class="actions"><button onclick="showTab('wallet')">Bắt đầu tạo ví</button><button class="secondary" onclick="showTab('studio')">Mở xưởng program</button></div></section>
+<div class="layout"><nav class="nav"><button data-tab="wallet" class="active" onclick="showTab('wallet')">◉ Ví Solana</button><button data-tab="send" onclick="showTab('send')">↗ Gửi SOL</button><button data-tab="memo" onclick="showTab('memo')">✎ Ghi nội dung</button><button data-tab="studio" onclick="showTab('studio')">⌘ Smart contract</button><button data-tab="explore" onclick="showTab('explore')">▤ Khám phá chuỗi</button></nav>
+<main class="main">
+<section id="wallet" class="view"><div class="panel"><h2>Quản lý ví</h2><div class="notice">Chỉ tạo ví học tập. Khóa bí mật được mã hóa bằng mật khẩu trước khi lưu trên thiết bị; không nhập seed phrase của ví có tài sản thật. Hãy sao lưu keypair an toàn trước khi xóa dữ liệu trình duyệt.</div><div class="grid"><div class="stat"><span>Địa chỉ ví hiện tại</span><strong id="address" class="mono">Chưa kết nối</strong></div><div class="stat"><span>Số dư</span><strong id="balance">— SOL</strong></div></div><div class="actions"><button id="create" onclick="createWallet()">Tạo ví mới</button><button class="secondary" onclick="connectPhantom()">Kết nối Phantom</button><button class="secondary" onclick="unlockWallet()">Mở khóa ví đã lưu</button><button class="secondary" onclick="refreshBalance()">Làm mới số dư</button><button class="secondary" onclick="lockWallet()">Khóa ví</button></div><label>Mật khẩu mã hóa ví cục bộ (tối thiểu 12 ký tự)</label><input id="password" type="password" autocomplete="new-password" placeholder="Nhập mật khẩu trước khi tạo/mở khóa ví"><div class="actions"><button class="secondary" onclick="exportWallet()">Xuất bản sao lưu keypair</button><button class="danger" onclick="deleteWallet()">Xóa ví cục bộ</button><a href="https://faucet.solana.com/" target="_blank" rel="noopener noreferrer">Nhận SOL Devnet từ Faucet ↗</a></div><p class="small">Bản sao lưu là khóa bí mật thô, chỉ xuất trong môi trường riêng tư. Không chụp ảnh, chia sẻ hay tải lên GitHub.</p></div></section>
+<section id="send" class="view hidden"><div class="panel"><h2>Chuyển SOL</h2><p>Chuyển SOL giữa các địa chỉ trên mạng đã chọn. Chỉ ký và phát giao dịch khi bạn xác nhận.</p><label>Địa chỉ người nhận</label><input id="recipient" placeholder="Địa chỉ Solana Base58"><label>Số lượng SOL</label><input id="amount" type="number" min="0" step="0.000001" placeholder="0.01"><button onclick="sendSol()">Xác nhận và gửi giao dịch</button><div id="sendResult"></div></div></section>
+<section id="memo" class="view hidden"><div class="panel"><h2>Ghi nội dung lên blockchain</h2><p>Ghi một thông điệp UTF-8 qua Solana Memo Program; dữ liệu hiển thị công khai, không thể thu hồi sau khi xác nhận. Không đưa thông tin cá nhân, mật khẩu hoặc nội dung nhạy cảm.</p><label>Nội dung (tối đa 500 byte UTF-8)</label><textarea id="memoText" maxlength="500" placeholder="Ví dụ: SolaMap GIS – dữ liệu đã kiểm chứng"></textarea><button onclick="sendMemo()">Ký và ghi Memo</button><div id="memoResult"></div></div></section>
+<section id="studio" class="view hidden"><div class="panel"><h2>Xưởng lập trình Rust / Anchor</h2><div class="notice">Trình biên tập này lưu code tại trình duyệt, không tự biên dịch hoặc triển khai. Để build và deploy thật trên Devnet, mở Solana Playground và dán mã vào dự án Anchor mới.</div><label>Mẫu program đếm số lần gọi</label><textarea id="code" spellcheck="false"></textarea><div class="actions"><button onclick="copyCode()">Sao chép mã Rust</button><button class="secondary" onclick="downloadCode()">Tải lib.rs</button><button class="secondary" onclick="openPlayground()">Mở Solana Playground ↗</button></div><h2>Quy trình triển khai thật</h2><ol><li>Mở Playground và tạo ví Playground riêng cho môi trường triển khai.</li><li>Chọn New Project → Anchor, sau đó thay nội dung <code>src/lib.rs</code> bằng mã ở trên.</li><li>Dùng Program ID mà Playground tạo; thay <code>declare_id!</code> nếu cần.</li><li>Chọn Devnet, cấp đủ SOL thử nghiệm rồi chạy <code>build</code> và <code>deploy</code>.</li><li>Sao chép Program ID vào ô bên dưới để kiểm tra tài khoản thực tế trên chuỗi.</li></ol><label>Program ID cần kiểm tra</label><input id="programId" placeholder="Nhập Program ID sau khi deploy"><button class="secondary" onclick="verifyProgram()">Kiểm tra program trên mạng</button><div id="programResult"></div></div></section>
+<section id="explore" class="view hidden"><div class="panel"><h2>Khám phá blockchain</h2><label>Địa chỉ ví hoặc tài khoản</label><input id="lookupAddress" placeholder="Nhập địa chỉ Base58"><button onclick="loadHistory()">Tải lịch sử giao dịch</button><div id="history"></div><div class="actions"><a id="explorerLink" target="_blank" rel="noopener noreferrer" href="https://explorer.solana.com/?cluster=devnet">Mở Solana Explorer ↗</a></div></div></section>
+<div id="status" class="panel small" role="status" aria-live="polite">Sẵn sàng · Chưa kết nối ví</div>
+</main></div><footer>Thiết kế: Long Ngo · Giấy phép MIT · SolaMap Web3 Lab · Ưu tiên mạng Devnet cho học tập</footer></div>
+<script src="https://unpkg.com/@solana/web3.js@1.98.4/lib/index.iife.min.js"></script>
+<script>
+"use strict";
+const $=id=>document.getElementById(id), STORE="solamap.wallet.v1", MEMO="MemoSq4gqABAXKb96qnH8TysNcWxMyWCqXgDLGmfcHr";
+let wallet=null, phantom=null;
+const network=()=> $("network").value;
+const rpc=()=>network()==="mainnet-beta"?"https://api.mainnet-beta.solana.com":network()==="testnet"?"https://api.testnet.solana.com":"https://api.devnet.solana.com";
+const connection=()=>new solanaWeb3.Connection(rpc(),"confirmed");
+const explorer=(type,id)=>"https://explorer.solana.com/"+type+"/"+encodeURIComponent(id)+"?cluster="+encodeURIComponent(network());
+function status(s,bad=false){$("status").textContent=s;$("status").style.color=bad?"#ffb8be":"#b8e9df"}
+function report(id,html,err=false){$(id).innerHTML='<div class="notice '+(err?'error':'ok')+'">'+html+'</div>'}
+function showTab(id){document.querySelectorAll(".view").forEach(e=>e.classList.toggle("hidden",e.id!==id));document.querySelectorAll("[data-tab]").forEach(e=>e.classList.toggle("active",e.dataset.tab===id))}
+function publicKey(){return phantom?phantom.publicKey:wallet?.publicKey??null}
+function renderWallet(){$("address").textContent=publicKey()?.toBase58()||"Chưa kết nối";$("lookupAddress").value=publicKey()?.toBase58()||"";$("balance").textContent="— SOL"}
+function requireSdk(){if(!window.solanaWeb3)throw Error("Không tải được Solana SDK. Kiểm tra kết nối mạng.")}
+async function derive(pass,salt){const raw=await crypto.subtle.importKey("raw",new TextEncoder().encode(pass),"PBKDF2",false,["deriveKey"]);return crypto.subtle.deriveKey({name:"PBKDF2",salt,iterations:250000,hash:"SHA-256"},raw,{name:"AES-GCM",length:256},false,["encrypt","decrypt"])}
+const b64=a=>btoa(String.fromCharCode(...a)), un64=s=>Uint8Array.from(atob(s),c=>c.charCodeAt(0));
+async function encrypt(secret,pass){const salt=crypto.getRandomValues(new Uint8Array(16)),iv=crypto.getRandomValues(new Uint8Array(12));const key=await derive(pass,salt);const ct=await crypto.subtle.encrypt({name:"AES-GCM",iv},key,secret);return JSON.stringify({v:1,salt:b64(salt),iv:b64(iv),data:b64(new Uint8Array(ct))})}
+async function decrypt(data,pass){const o=JSON.parse(data),key=await derive(pass,un64(o.salt));return new Uint8Array(await crypto.subtle.decrypt({name:"AES-GCM",iv:un64(o.iv)},key,un64(o.data)))}
+async function createWallet(){try{requireSdk();if(localStorage.getItem(STORE))return status("Đã có ví lưu trên thiết bị. Hãy sao lưu/xóa ví cũ trước khi tạo mới.",true);const pass=$("password").value;if(pass.length<12)throw Error("Mật khẩu phải có ít nhất 12 ký tự");const kp=solanaWeb3.Keypair.generate();localStorage.setItem(STORE,await encrypt(kp.secretKey,pass));wallet=kp;phantom=null;renderWallet();await refreshBalance();status("Đã tạo ví Dev Lab và lưu bản mã hóa trên thiết bị. Hãy xuất bản sao lưu ở nơi riêng tư.")}catch(e){status(e.message,true)}}
+async function unlockWallet(){try{requireSdk();const item=localStorage.getItem(STORE);if(!item)throw Error("Chưa có ví đã lưu");wallet=solanaWeb3.Keypair.fromSecretKey(await decrypt(item,$("password").value));phantom=null;renderWallet();await refreshBalance();status("Đã mở khóa ví cục bộ")}catch(e){status("Không thể mở khóa: "+e.message,true)}}
+async function connectPhantom(){try{const p=window.phantom?.solana||window.solana;if(!p?.isPhantom)throw Error("Không tìm thấy Phantom. Hãy cài tiện ích từ phantom.com");await p.connect();phantom=p;wallet=null;renderWallet();await refreshBalance();status("Đã kết nối Phantom. Hãy kiểm tra mạng trong Phantom khớp mạng trên trang trước khi ký.")}catch(e){status(e.message,true)}}
+function lockWallet(){wallet=null;phantom=null;$("password").value="";renderWallet();status("Đã khóa phiên ví")}
+async function refreshBalance(){try{requireSdk();if(!publicKey())throw Error("Chưa kết nối ví");const lamports=await connection().getBalance(publicKey());$("balance").textContent=(lamports/solanaWeb3.LAMPORTS_PER_SOL).toFixed(6)+" SOL";status("Đã cập nhật số dư trên "+network())}catch(e){status("RPC: "+e.message,true)}}
+function exportWallet(){if(!wallet)return status("Chỉ có thể xuất bản sao lưu ví cục bộ sau khi mở khóa. Không xuất khóa của Phantom.",true);if(!confirm("File chứa KHÓA BÍ MẬT dạng JSON. Chỉ tải về máy cá nhân an toàn. Tiếp tục?"))return;const a=document.createElement("a"),blob=new Blob([JSON.stringify(Array.from(wallet.secretKey))],{type:"application/json"});const u=URL.createObjectURL(blob);a.href=u;a.download="solamap-keypair-BI-MAT.json";a.click();setTimeout(()=>URL.revokeObjectURL(u),1000);status("Đã xuất keypair. Hãy cất ngoại tuyến; không chia sẻ file này.")}
+function deleteWallet(){if(!localStorage.getItem(STORE))return status("Không có ví cục bộ để xóa");if(!confirm("Chỉ xóa bản mã hóa trên trình duyệt. Không thể khôi phục nếu chưa sao lưu!"))return;if(!confirm("Xác nhận lần nữa: bạn đã sao lưu khóa bí mật?"))return;localStorage.removeItem(STORE);lockWallet();status("Đã xóa bản mã hóa cục bộ")}
+async function signAndSend(tx){requireSdk();const pk=publicKey();if(!pk)throw Error("Hãy tạo/mở khóa/kết nối ví trước");tx.feePayer=pk;const latest=await connection().getLatestBlockhash("confirmed");tx.recentBlockhash=latest.blockhash;let signature;if(phantom){const signed=await phantom.signTransaction(tx);signature=await connection().sendRawTransaction(signed.serialize())}else{tx.sign(wallet);signature=await connection().sendRawTransaction(tx.serialize())}const result=await connection().confirmTransaction({signature,blockhash:latest.blockhash,lastValidBlockHeight:latest.lastValidBlockHeight},"confirmed");if(result.value.err)throw Error("Giao dịch bị từ chối: "+JSON.stringify(result.value.err));await refreshBalance();return signature}
+function txLink(sig){return '<a target="_blank" rel="noopener noreferrer" href="'+explorer("tx",sig)+'">'+sig+'</a>'}
+async function sendSol(){try{const to=new solanaWeb3.PublicKey($("recipient").value.trim()),v=Number($("amount").value);if(!Number.isFinite(v)||v<=0||Math.round(v*1e9)<=0)throw Error("Số SOL không hợp lệ");const lamports=Math.round(v*solanaWeb3.LAMPORTS_PER_SOL);if(!Number.isSafeInteger(lamports))throw Error("Số lượng vượt giới hạn hỗ trợ");if(!confirm("Xác nhận gửi "+v+" SOL trên "+network()+" đến "+to.toBase58()+"?"))return;const tx=new solanaWeb3.Transaction().add(solanaWeb3.SystemProgram.transfer({fromPubkey:publicKey(),toPubkey:to,lamports}));const sig=await signAndSend(tx);report("sendResult","Đã xác nhận: "+txLink(sig))}catch(e){report("sendResult",e.message,true)}}
+async function sendMemo(){try{const msg=$("memoText").value,bytes=new TextEncoder().encode(msg);if(!bytes.length||bytes.length>500)throw Error("Nội dung phải từ 1 đến 500 byte UTF-8");if(!confirm("Ghi công khai và không thể xóa "+bytes.length+" byte lên "+network()+"?"))return;const tx=new solanaWeb3.Transaction().add(new solanaWeb3.TransactionInstruction({keys:[],programId:new solanaWeb3.PublicKey(MEMO),data:bytes}));const sig=await signAndSend(tx);report("memoResult","Ghi Memo thành công: "+txLink(sig))}catch(e){report("memoResult",e.message,true)}}
+const template=`use anchor_lang::prelude::*;
+
+// Thay bằng Program ID do Solana Playground tạo
+declare_id!("11111111111111111111111111111111");
+
+#[program]
+pub mod solamap_counter {
+    use super::*;
+
+    pub fn initialize(ctx: Context<Initialize>) -> Result<()> {
+        ctx.accounts.counter.value = 0;
+        Ok(())
+    }
+
+    pub fn increment(ctx: Context<Increment>) -> Result<()> {
+        ctx.accounts.counter.value = ctx.accounts.counter.value.checked_add(1)
+            .ok_or(ErrorCode::Overflow)?;
+        Ok(())
+    }
+}
+
+#[derive(Accounts)]
+pub struct Initialize<'info> {
+    #[account(init, payer = user, space = 8 + 8)]
+    pub counter: Account<'info, Counter>,
+    #[account(mut)]
+    pub user: Signer<'info>,
+    pub system_program: Program<'info, System>,
+}
+
+#[derive(Accounts)]
+pub struct Increment<'info> {
+    #[account(mut)]
+    pub counter: Account<'info, Counter>,
+}
+
+#[account]
+pub struct Counter { pub value: u64 }
+
+#[error_code]
+pub enum ErrorCode {
+    #[msg("Bộ đếm vượt giới hạn")]
+    Overflow,
+}
+`;
+$("code").value=localStorage.getItem("solamap.code")||template;$("code").addEventListener("input",()=>localStorage.setItem("solamap.code",$("code").value));
+async function copyCode(){try{await navigator.clipboard.writeText($("code").value);status("Đã sao chép Rust. Dán vào src/lib.rs trong Playground.")}catch(e){status(e.message,true)}}
+function downloadCode(){const u=URL.createObjectURL(new Blob([$("code").value],{type:"text/plain"}));const a=document.createElement("a");a.href=u;a.download="lib.rs";a.click();setTimeout(()=>URL.revokeObjectURL(u),1000)}
+function openPlayground(){window.open("https://beta.solpg.io/","_blank","noopener,noreferrer")}
+async function verifyProgram(){try{requireSdk();const id=new solanaWeb3.PublicKey($("programId").value.trim()),info=await connection().getAccountInfo(id);if(!info)throw Error("Không tìm thấy tài khoản trên "+network());report("programResult","Tài khoản tồn tại · executable: "+info.executable+" · owner: "+info.owner.toBase58()+" · dung lượng: "+info.data.length+" byte · <a target=_blank rel=noopener href='"+explorer("address",id.toBase58())+"'>Xem Explorer</a>"+(!info.executable?"<p>Chưa phải tài khoản program thực thi.</p>":""))}catch(e){report("programResult",e.message,true)}}
+async function loadHistory(){try{requireSdk();const id=new solanaWeb3.PublicKey($("lookupAddress").value.trim());const rows=await connection().getSignaturesForAddress(id,{limit:12});$("history").replaceChildren();if(!rows.length){$("history").textContent="Chưa có giao dịch hoặc RPC không trả dữ liệu";return}for(const r of rows){const p=document.createElement("p"),a=document.createElement("a");a.href=explorer("tx",r.signature);a.textContent=r.signature.slice(0,22)+"…";a.target="_blank";a.rel="noopener noreferrer";p.append(a,document.createTextNode(" · "+(r.err?"Lỗi":"Thành công")+" · "+(r.blockTime?new Date(r.blockTime*1000).toLocaleString("vi-VN"):"Không rõ thời gian")));$("history").append(p)}}catch(e){$("history").textContent=e.message}}
+$("network").addEventListener("change",()=>{$("explorerLink").href="https://explorer.solana.com/?cluster="+encodeURIComponent(network());$("balance").textContent="— SOL";status("Đã đổi RPC sang "+network()+". Với Phantom, phải chuyển mạng tương ứng trong ví.");if(publicKey())refreshBalance()});
+if(localStorage.getItem(STORE))status("Phát hiện ví mã hóa cục bộ. Nhập mật khẩu và chọn Mở khóa ví đã lưu.");
+renderWallet();
+</script></body></html>
