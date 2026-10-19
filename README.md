@@ -45,3 +45,12 @@ Giao diện học tập Solana bằng tiếng Việt. Thiết kế: Long Ngo. Li
 - Chức năng gửi vẫn dùng một RPC cho mỗi giao dịch, tránh phát lại khi chưa xác minh signature. Lưu ý: phải đảm bảo cùng cluster giữa Phantom và SolaMap.
 - Nhận SOL native không cần thao tác chấp nhận trên website; kiểm tra signature giao dịch từ Phantom để xác định giao dịch thật sự thành công, đúng mạng và đúng địa chỉ nhận.
 - Luồng nhập seed/JSON và RPC mới **chưa được xác minh end-to-end bằng giao dịch Mainnet thật**. Các khóa bí mật đi qua JavaScript trong trang web; nhập liệu ở môi trường an toàn và không sử dụng khóa đang nắm giữ giá trị cao.
+
+
+## Cập nhật tách tài khoản và Receive Monitor
+
+- Ví SolaMap và Phantom được hiển thị riêng. Địa chỉ SolaMap nằm trong `solamap.localAddress`; đây là **public key**, không phải khóa bí mật. Nếu đang dùng ví đã tạo từ phiên bản cũ, hãy mở khóa bằng mật khẩu để ghi lại địa chỉ công khai cũ. Không xóa dữ liệu trình duyệt trước khi sao lưu.
+- Ở mục Nhận SOL, chọn đúng ví SolaMap hoặc ví ngoài để QR hiển thị địa chỉ nhận tương ứng; ở mục Chuyển SOL chọn tài khoản gửi độc lập.
+- RPC Manager kiểm tra genesis hash và timeout cho RPC đọc dữ liệu, sử dụng RPC HTTPS chính/phụ/công cộng. Các lần phát giao dịch không được tự động gửi lại sau timeout.
+- Receive Monitor kiểm tra 15 giây/lần trong khi tab còn hiển thị, đọc số dư và 10 chữ ký gần đây. Lịch sử chữ ký không khẳng định SOL đã vào; kiểm tra transaction details để xác minh số lượng và người nhận. Phiên bản này sử dụng polling, **chưa bổ sung WebSocket**.
+- Chưa tích hợp MetaMask/Solflare theo Wallet Standard trong giao diện; mục ví ngoài hiện hỗ trợ Phantom. Cần kiểm thử và kiểm toán trước khi sử dụng giá trị lớn trên Mainnet.
