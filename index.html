@@ -112,7 +112,7 @@ async function signAndSend(tx){
    tx.sign(wallet);
    signature=await conn.sendRawTransaction(tx.serialize(),{skipPreflight:false,maxRetries:3});
   }
- }catch(e){throw Error("Không thể ký/phát giao dịch: "+String(e.message||e)+". Kiểm tra Phantom đúng mạng "+cluster+".")}
+ }catch(e){let details="";try{if(typeof e.getLogs==="function"){const logs=await e.getLogs(conn);if(logs?.length)details=" Logs: "+logs.join(" | ").slice(0,1600)}}catch{}throw Error("Không thể ký/phát giao dịch trên "+cluster+": "+String(e.message||e)+details+". Nếu báo Attempt to debit an account but found no record of a prior credit, hãy kiểm tra ví nguồn thực tế và nạp đủ SOL trên đúng mạng. Không tự đổi từ ví nội bộ sang Phantom.");}
  if(!signature)throw Error("Ví chưa trả về transaction signature; kiểm tra hoạt động của ví và lịch sử giao dịch trước khi thử lại.");
  localStorage.setItem("solamap.lastTx",JSON.stringify({signature,cluster,createdAt:Date.now()}));updateConnectionDetails();
  status("Đã gửi: "+signature+". Đang kiểm tra xác nhận; không gửi lại khi chưa tra cứu signature.");
