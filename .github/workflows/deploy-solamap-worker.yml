@@ -19,7 +19,7 @@ jobs:
       PRIMARY_RPC: ${{ secrets.SOLANA_RPC_PRIMARY }}
       BACKUP_RPC: ${{ secrets.SOLANA_RPC_BACKUP }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: Check required secrets without printing them
         shell: bash
         run: |
