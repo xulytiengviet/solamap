@@ -3,7 +3,7 @@
 const ORIGIN = "https://xulytiengviet.github.io";
 const ALLOWED = new Set(["getGenesisHash","getHealth","getSlot","getVersion","getBalance","getAccountInfo","getSignatureStatuses","getSignaturesForAddress","getParsedTransaction","getTransaction","getLatestBlockhash","getFeeForMessage","getBlockHeight","getMinimumBalanceForRentExemption","simulateTransaction","sendTransaction"]);
 const MAINNET_GENESIS = "5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp";
-const headers = {"Access-Control-Allow-Origin":ORIGIN,"Access-Control-Allow-Methods":"POST,OPTIONS,GET","Access-Control-Allow-Headers":"Content-Type","Vary":"Origin","Cache-Control":"no-store","X-Content-Type-Options":"nosniff"};
+const headers = {"Access-Control-Allow-Origin":ORIGIN,"Access-Control-Allow-Methods":"POST,OPTIONS,GET","Access-Control-Allow-Headers":"Content-Type, Accept, Solana-Client, X-Solana-Client","Vary":"Origin","Cache-Control":"no-store","X-Content-Type-Options":"nosniff"};
 const reply=(body,status=200,extra={})=>new Response(JSON.stringify(body),{status,headers:{"Content-Type":"application/json;charset=utf-8",...headers,...extra}});
 const allowedOrigin=request=>request.headers.get("Origin")===ORIGIN;
 async function upstream(endpoint,payload){const ctr=new AbortController(),timer=setTimeout(()=>ctr.abort(),8000);try{const r=await fetch(endpoint,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(payload),signal:ctr.signal});if(!r.ok)throw Error("Upstream HTTP "+r.status);const text=await r.text();if(text.length>1000000)throw Error("Upstream response too large");const data=JSON.parse(text);if(data?.error?.code===429)throw Error("Upstream rate limited");return data}finally{clearTimeout(timer)}}
@@ -14,6 +14,7 @@ export default {async fetch(request,env){
  const url=new URL(request.url);
  if(request.method==="OPTIONS"){if(!allowedOrigin(request))return new Response(null,{status:403});return new Response(null,{status:204,headers})}
  if((url.pathname==="/health"||url.pathname==="/")&&request.method==="GET")return reply({service:"solamap-rpc",version:"2026-10-19.2",status:"deployed",configured:!!env.SOLANA_RPC_PRIMARY,backupConfigured:!!env.SOLANA_RPC_BACKUP,network:"mainnet-beta",rpcPath:"/rpc",warning:"configured means secret exists, not that upstream is healthy"});
+ if(url.pathname==="/health/upstream"&&request.method==="GET"){if(!env.SOLANA_RPC_PRIMARY)return reply({service:"solamap-rpc",upstream:"not-configured"},503);try{const data=await doRead({jsonrpc:"2.0",id:1,method:"getSlot",params:[]},env);if(data?.error)throw Error("Solana RPC error "+data.error.code);return reply({service:"solamap-rpc",upstream:"healthy",network:"mainnet-beta",slot:data.result})}catch(e){return reply({service:"solamap-rpc",upstream:"unavailable",reason:String(e.message||e).slice(0,180)},503)}}
  if(request.method!=="POST"||url.pathname!=="/rpc")return reply({error:"Not found"},404);
  if(!allowedOrigin(request))return reply({error:"Origin not allowed"},403);
  if(Number(request.headers.get("Content-Length")||0)>16000)return reply({error:"Payload too large"},413);
