@@ -23,7 +23,7 @@ const $=id=>document.getElementById(id), STORE="solamap.wallet.v1", MEMO="MemoSq
 let wallet=null, phantom=null;
 const network=()=> $("network").value;
 const rpc=()=>network()==="mainnet-beta"?"https://api.mainnet-beta.solana.com":network()==="testnet"?"https://api.testnet.solana.com":"https://api.devnet.solana.com";
-const GENESIS={"mainnet-beta":"5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp",devnet:"EtWTRABZaYq6iMfeYKouRu166VU2xqa1"};
+const GENESIS={"mainnet-beta":"5eykt4UsFv8P8NJdTREpY1vzqKqZKvdpKuc147dw2N9d",devnet:"EtWTRABZaYq6iMfeYKouRu166VU2xqa1"};
 const rpcHealth=new Map(),lastBalances=new Map();
 let lastRpcError="", balanceSequence=0;
 function saveWorkerRpc(){try{const raw=$("workerRpc").value.trim()||"https://solamap.bilabot-cvnss4-71bd4651.workers.dev/rpc",u=new URL(raw);if(u.protocol!=="https:"||!u.pathname.endsWith("/rpc"))throw Error("Nhập URL HTTPS công khai kết thúc bằng /rpc");$("rpcPrimary").value=u.href;saveRpcSettings();localStorage.setItem("solamap.workerRpc",u.href);$("workerStatus").textContent="Đã đặt Worker làm RPC chính: "+u.hostname}catch(e){$("workerStatus").textContent="Cấu hình Worker lỗi: "+e.message}}
