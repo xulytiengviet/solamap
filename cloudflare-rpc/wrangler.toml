@@ -1,0 +1,7 @@
+name = "solamap-rpc"
+main = "src/index.js"
+compatibility_date = "2026-10-19"
+
+# Add secrets using:
+# npx wrangler secret put SOLANA_RPC_PRIMARY
+# npx wrangler secret put SOLANA_RPC_BACKUP
