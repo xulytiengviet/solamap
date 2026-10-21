@@ -1,0 +1,202 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#090f20">
+  <meta name="description" content="SolaMap Privacy Lab — mô phỏng shielded UTXO, note, Merkle, nullifier và đọc trạng thái Solana Devnet. Không xử lý SOL thật.">
+  <title>UXTO · SolaMap Privacy Lab — Devnet</title>
+  <style>
+    :root {color-scheme:dark;--bg:#090e1d;--card:#121d32;--card2:#192740;--line:#2c425e;--txt:#eef8ff;--muted:#9eb4c9;--mint:#66eacb;--violet:#ac95ff;--amber:#ffd18a;--red:#ffa3af}
+    *{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:radial-gradient(ellipse at 85% 0%,#28274f 0%,transparent 46%),radial-gradient(ellipse at 0 70%,#102d36 0%,transparent 45%),var(--bg);color:var(--txt);font-family:Inter,system-ui,-apple-system,"Segoe UI",sans-serif;line-height:1.55}
+    a{color:var(--mint)}button,input{font:inherit}button{cursor:pointer}button:disabled{opacity:.5;cursor:not-allowed}.shell{max-width:1500px;margin:auto;padding:20px 24px 70px}.topbar{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:14px;padding:8px 0 24px}.brand{font-weight:900;font-size:23px;letter-spacing:-.04em}.brand strong{color:var(--mint)}.topactions{display:flex;align-items:center;gap:12px;flex-wrap:wrap}.back{padding:10px 14px;text-decoration:none;color:var(--txt);border:1px solid var(--line);border-radius:12px;font-size:13px}.network{border:1px solid #286d63;color:#9df3db;background:#153833;padding:8px 12px;border-radius:50px;font-size:12px;font-weight:850;letter-spacing:.04em}
+    .page{display:grid;grid-template-columns:225px minmax(0,1fr);gap:22px;align-items:start}.side{position:sticky;top:16px;background:#101b2e;border:1px solid var(--line);border-radius:18px;padding:17px}.side small{color:var(--muted);font-weight:800;letter-spacing:.1em}.side a{display:block;padding:10px 11px;margin-top:4px;border-radius:10px;color:#cbd8e7;text-decoration:none;font-size:14px}.side a:hover,.side a:focus{background:#21364c;color:var(--mint)}.side .micro{font-size:12px;color:var(--muted);margin:20px 7px 4px}
+    main{min-width:0}section{scroll-margin-top:18px}.hero{padding:28px;border-radius:22px;border:1px solid #425174;background:linear-gradient(120deg,#202a50 0%,#0e2935 100%);margin-bottom:16px}.eyebrow{font-size:12px;font-weight:800;letter-spacing:.13em;color:var(--mint)}h1{font-size:clamp(29px,4vw,47px);letter-spacing:-.04em;line-height:1.15;margin:10px 0}h2{font-size:21px;letter-spacing:-.02em;margin:0 0 14px}h3{font-size:16px;margin:0 0 9px}p{color:#c1d2e2;margin:9px 0;line-height:1.65}.hero p{max-width:800px}.statusline{display:flex;flex-wrap:wrap;gap:8px;margin-top:18px}.chip{background:#132f3b;border:1px solid #3d6275;color:#bcece6;font-size:12px;padding:6px 10px;border-radius:30px;font-weight:750}.chip.warn{background:#423420;border-color:#775f39;color:#ffdc9d}.chip.purple{background:#2d254b;border-color:#55488b;color:#d5c8ff}
+    .metrics{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:13px;margin-bottom:16px}.metric{background:var(--card);border:1px solid var(--line);border-radius:17px;padding:18px;min-width:0}.metric label{display:block;color:var(--muted);font-size:12px;font-weight:750}.metric strong{display:block;font-size:clamp(21px,2.3vw,29px);margin:9px 0 1px;letter-spacing:-.03em;overflow-wrap:anywhere}.metric small{color:#a6bfd0}
+    .panel{background:linear-gradient(150deg,#131f35,#101a2d);border:1px solid var(--line);padding:22px;border-radius:19px;margin-bottom:16px;min-width:0}.panelhead{display:flex;justify-content:space-between;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:12px}.panelhead h2{margin:0}.muted{color:var(--muted);font-size:13px}.cols{display:grid;grid-template-columns:minmax(0,1.12fr) minmax(0,.88fr);gap:16px}.modes{display:flex;gap:8px;flex-wrap:wrap;margin:18px 0}.mode{padding:10px 13px;color:#c7d8ea;background:#1e3047;border:1px solid #39516b;border-radius:11px;font-weight:750}.mode[aria-pressed="true"]{color:#0b2330;background:var(--mint);border-color:var(--mint)}.fieldgrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}.field{min-width:0}.field label{color:#cad7e6;font-size:13px;font-weight:700;display:block;margin-bottom:6px}.field input{width:100%;padding:12px 13px;border-radius:11px;border:1px solid #44607a;background:#0c192c;color:white;outline:none}.field input:focus{border-color:var(--mint);box-shadow:0 0 0 3px #52d7be29}.field .hint{font-size:12px;color:var(--muted);margin-top:5px}.full{grid-column:1/-1}.btn{border:0;border-radius:12px;background:var(--mint);padding:12px 17px;font-weight:850;color:#0a2831}.btn:hover{filter:brightness(1.08)}.btn.sec{background:#29425b;color:#e4f6ff;border:1px solid #43607c}.btn.purple{background:#8e7ae8;color:#fff}.btn:focus-visible,.mode:focus-visible,.back:focus-visible{outline:2px solid white;outline-offset:3px}.buttons{display:flex;gap:9px;flex-wrap:wrap;margin-top:16px}.notice{background:#332b26;border:1px solid #5a4d3c;padding:12px 14px;border-radius:12px;color:#f5d8ac;font-size:13px;margin:14px 0}.notice.ok{background:#142e2c;border-color:#31786b;color:#acf6dc}.notice.error{background:#432530;border-color:#875462;color:#ffd7d7}.notice.info{background:#17283c;border-color:#34536e;color:#cee9ff}
+    .flow{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px;margin-top:15px}.step{border:1px solid #374f6e;border-radius:13px;background:#15253c;padding:12px;min-width:0}.step b{display:block;color:#e9f4ff;font-size:13px}.step small{color:var(--muted)}.arrow{color:var(--violet);margin-right:4px}.detail{display:grid;gap:7px}.detail div{display:flex;gap:12px;justify-content:space-between;border-bottom:1px solid #2b4057;padding:8px 0}.detail span{color:var(--muted)}.detail strong{text-align:right;overflow-wrap:anywhere}.code{font-family:ui-monospace,SFMono-Regular,Consolas,monospace;color:#afeedb;font-size:12px;overflow-wrap:anywhere}.list{display:grid;gap:9px}.note{border:1px solid #344c63;background:#14233a;padding:12px;border-radius:12px}.note .line{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap}.note b{font-size:14px}.note small{color:var(--muted)}.tag{font-size:11px;border-radius:30px;padding:4px 8px;border:1px solid #3c786b;color:#acf5df}.tag.spent{border-color:#795b67;color:#ffb6c0}.tag.sent{border-color:#66639a;color:#d6caff}.empty{color:var(--muted);font-size:13px;padding:12px;border:1px dashed #4b5a72;border-radius:10px}.rootbox{padding:12px;background:#0b1a2a;border:1px solid #38536c;border-radius:12px;min-width:0}.merkle{display:flex;flex-wrap:wrap;gap:6px;margin:12px 0}.leaf{font-family:ui-monospace,monospace;font-size:11px;background:#2b2c57;color:#d7d0ff;border:1px solid #56538b;padding:7px 9px;border-radius:7px}.events{max-height:250px;overflow-y:auto}.event{border-left:2px solid #5cd8bf;padding:7px 12px;margin:6px 0;background:#14253a;border-radius:0 8px 8px 0;font-size:13px}.event time{font-size:11px;color:var(--muted);display:block}.tiles{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:13px}.tile{border:1px solid #334962;border-radius:13px;padding:14px;background:#14253a}.tile h3{color:var(--mint)}.tile p{font-size:13px;margin:6px 0}.smalllinks{display:flex;flex-wrap:wrap;gap:10px;margin-top:14px}.smalllinks a{font-size:13px}.footer{font-size:12px;color:var(--muted);padding:18px 0 0}
+    @media(max-width:1000px){.page{grid-template-columns:1fr}.side{position:static;display:flex;gap:7px;overflow:auto;padding:10px}.side small,.side .micro{display:none}.side a{flex-shrink:0;margin:0;white-space:nowrap}.cols{grid-template-columns:1fr}}@media(max-width:650px){.shell{padding:12px 12px 50px}.hero,.panel{padding:18px}.metrics{grid-template-columns:1fr}.fieldgrid{grid-template-columns:1fr}.tiles{grid-template-columns:1fr}.flow{grid-template-columns:1fr}.brand{font-size:21px}.topbar{padding-bottom:13px}}
+  </style>
+</head>
+<body>
+<div class="shell">
+  <header class="topbar">
+    <div class="brand">◎ Sola<strong>Map</strong> <span class="muted">/ Privacy Lab</span></div>
+    <div class="topactions">
+      <span class="network">● SOLANA DEVNET ONLY</span>
+      <a class="back" href="./index.html">← Trở về SolaMap</a>
+    </div>
+  </header>
+  <div class="page">
+    <nav class="side" aria-label="Điều hướng Privacy Lab">
+      <small>XƯỞNG UXTO</small>
+      <a href="#overview">◈ Tổng quan</a>
+      <a href="#engine">⇄ Giao dịch mô phỏng</a>
+      <a href="#notes">◉ Kho note</a>
+      <a href="#merkle">◇ Merkle &amp; nullifier</a>
+      <a href="#devnet">⌁ Kết nối Devnet</a>
+      <a href="#architecture">▤ Kiến trúc triển khai</a>
+      <a href="#safety">⚑ Giới hạn &amp; an toàn</a>
+      <p class="micro">Độc lập với các chức năng ví và program đang hoạt động tại SolaMap.</p>
+    </nav>
+    <main>
+      <section id="overview" class="hero">
+        <span class="eyebrow">UXTO / UTXO · ZERO-KNOWLEDGE RESEARCH</span>
+        <h1>SolaMap <span style="color:var(--mint)">Privacy Lab</span></h1>
+        <p>Mô phỏng lớp note/UTXO riêng tư chạy bên trên mô hình tài khoản của Solana: shield, chuyển riêng tư, unshield, Merkle commitment và nullifier. Đọc trạng thái <b>Devnet thật</b> trong khu riêng, không ảnh hưởng ví hoặc program hiện tại.</p>
+        <div class="statusline">
+          <span class="chip">Devnet cố định</span>
+          <span class="chip purple">Mô phỏng Join–Split 2×2</span>
+          <span class="chip warn">Chưa có ZK verifier / pool on-chain</span>
+          <span class="chip">Không gửi giao dịch</span>
+        </div>
+      </section>
+      <div class="metrics" aria-label="Chỉ số giả lập">
+        <div class="metric"><label>SOL công khai · SỐ DƯ MÔ PHỎNG</label><strong id="demoPublic">—</strong><small>Không phải số dư ví</small></div>
+        <div class="metric"><label>Private notes · SỐ DƯ MÔ PHỎNG</label><strong id="demoPrivate">—</strong><small>Chưa có tài sản thực trong pool</small></div>
+        <div class="metric"><label>Pool vault · DỰ TRỮ MÔ PHỎNG</label><strong id="demoVault">—</strong><small>Không có địa chỉ vault thực</small></div>
+      </div>
+      <section id="engine" class="panel">
+        <div class="panelhead"><h2>01 · Xưởng giao dịch Shielded UTXO</h2><span class="chip purple">Chạy cục bộ trong bộ nhớ</span></div>
+        <p class="muted">Thử các luồng giao dịch và phép bảo toàn giá trị bằng lamports. Tất cả note trong mục này chỉ là dữ liệu học tập; mã băm minh họa là SHA-256, <b>không phải Poseidon</b>, và không tạo Groth16 proof.</p>
+        <div class="modes" role="group" aria-label="Loại giao dịch">
+          <button class="mode" type="button" data-mode="shield" aria-pressed="false">↓ Nạp vào pool</button>
+          <button class="mode" type="button" data-mode="transfer" aria-pressed="false">⇄ Chuyển riêng tư</button>
+          <button class="mode" type="button" data-mode="unshield" aria-pressed="true">↗ Rút SOL</button>
+        </div>
+        <div class="fieldgrid">
+          <div class="field"><label for="amount">Số SOL (chỉ mô phỏng)</label><input id="amount" type="text" inputmode="decimal" value="0.6" autocomplete="off"><div class="hint">Tối đa 9 chữ số thập phân · dùng dấu chấm hoặc phẩy</div></div>
+          <div class="field"><label for="relayFee">Phí relayer giả định (SOL)</label><input id="relayFee" type="text" inputmode="decimal" value="0.005" autocomplete="off"><div class="hint">Chỉ áp dụng khi mô phỏng rút SOL</div></div>
+          <div class="field full" id="recipientField"><label for="recipient">Nơi nhận / nhãn người nhận mô phỏng</label><input id="recipient" type="text" value="Người nhận Devnet minh họa" maxlength="100" autocomplete="off"><div class="hint">Không thực hiện chuyển SOL tới địa chỉ này.</div></div>
+        </div>
+        <div class="flow" aria-label="Luồng minh họa">
+          <div class="step"><b>1 · Chọn 2 input</b><small>Note thật của mô phỏng + dummy note 0 SOL nếu thiếu</small></div>
+          <div class="step"><b>2 · Chứng minh giả lập</b><small>Kiểm toán phép tính, tạo commitment, không sinh proof ZK</small></div>
+          <div class="step"><b>3 · Xuất 2 output</b><small>Note tiền thừa và note người nhận / dummy</small></div>
+        </div>
+        <div class="buttons">
+          <button class="btn" id="simulateBtn" type="button">▶ Mô phỏng rút SOL</button>
+          <button class="btn sec" id="resetBtn" type="button">↺ Khởi tạo lại dữ liệu thử</button>
+          <button class="btn sec" id="exportBtn" type="button">↓ Xuất báo cáo mô phỏng</button>
+        </div>
+        <div id="simMessage" class="notice info" role="status" aria-live="polite">Đang khởi tạo 2 note minh họa: 0,9 và 0,5 SOL.</div>
+        <div id="lastSummary" class="detail" aria-live="polite"></div>
+      </section>
+      <div class="cols">
+        <section id="notes" class="panel">
+          <div class="panelhead"><h2>02 · Kho note giả lập</h2><span id="noteCount" class="chip">0 note</span></div>
+          <p class="muted">Note được tạo ngẫu nhiên mỗi phiên và chỉ nằm trong RAM. Tải lại trang sẽ đặt lại mô phỏng; không có khóa bí mật hay note thật nào được nhập.</p>
+          <div id="noteList" class="list"></div>
+        </section>
+        <section id="merkle" class="panel">
+          <div class="panelhead"><h2>03 · Cây Merkle &amp; nullifier</h2><span class="chip purple">SHA-256 DEMO</span></div>
+          <p class="muted">Cây Merkle nhị phân thu gọn phục vụ trực quan, không phải sparse tree hoặc root đã xác nhận trên Solana.</p>
+          <div class="rootbox"><div class="muted">Merkle root minh họa</div><div class="code" id="merkleRoot">Chưa có dữ liệu</div></div>
+          <div id="merkleLeaves" class="merkle"></div>
+          <h3>Nullifier đã dùng <span id="nullifierCount" class="muted"></span></h3>
+          <div id="nullifierList" class="list"></div>
+        </section>
+      </div>
+      <section id="devnet" class="panel">
+        <div class="panelhead"><h2>04 · Solana Devnet · Trạng thái thực</h2><span class="network">CHỈ ĐỌC RPC</span></div>
+        <p class="muted">Truy vấn RPC cố định <span class="code">https://api.devnet.solana.com</span>. Có thể kết nối Phantom để lấy <b>địa chỉ công khai</b>; không yêu cầu ký, không truy cập seed phrase, không chuyển SOL. Nếu Phantom đang dùng mạng khác, số dư hiển thị tại đây vẫn chỉ lấy từ Devnet.</p>
+        <div class="buttons">
+          <button class="btn sec" id="rpcBtn" type="button">⌁ Kiểm tra RPC Devnet</button>
+          <button class="btn sec" id="connectBtn" type="button">◉ Đọc địa chỉ từ Phantom</button>
+          <a class="back" href="https://faucet.solana.com/" target="_blank" rel="noopener noreferrer">Nhận SOL thử nghiệm ↗</a>
+        </div>
+        <div class="detail" style="margin-top:13px">
+          <div><span>RPC</span><strong id="rpcStatus">Chưa kiểm tra</strong></div>
+          <div><span>Slot Devnet</span><strong id="slotValue">—</strong></div>
+          <div><span>Ví công khai</span><strong id="walletValue" class="code">Chưa kết nối</strong></div>
+          <div><span>Số dư thật trên Devnet</span><strong id="chainBalance">—</strong></div>
+        </div>
+        <hr style="border:0;border-top:1px solid var(--line);margin:20px 0">
+        <h3>Kiểm tra Program ID trên Devnet</h3>
+        <p class="muted">Chỉ kiểm tra account có tồn tại và cờ <span class="code">executable</span>; kết quả này không chứng minh program là shielded pool hay đã được kiểm toán.</p>
+        <div class="field"><label for="programId">Program ID (Base58)</label><input id="programId" autocomplete="off" spellcheck="false" placeholder="Dán Program ID đã triển khai trên Devnet"></div>
+        <div class="buttons"><button class="btn sec" id="programBtn" type="button">Kiểm tra program</button><button class="btn" type="button" disabled title="Chưa có program shielded pool được triển khai và kiểm toán">Giao dịch shield/unshield on-chain · Chưa bật</button></div>
+        <div id="chainMessage" class="notice info" aria-live="polite">Mạng Devnet là môi trường thử nghiệm. Phần mô phỏng UTXO không nạp hoặc rút SOL trên chuỗi.</div>
+      </section>
+      <section class="panel">
+        <div class="panelhead"><h2>05 · Nhật ký giao dịch mô phỏng</h2><span class="chip">Không phát lên blockchain</span></div>
+        <div id="eventList" class="events"></div>
+      </section>
+      <section id="architecture" class="panel">
+        <h2>06 · Kiến trúc triển khai Shielded UTXO</h2>
+        <div class="tiles">
+          <div class="tile"><h3>01 · On-chain Anchor Program</h3><p>Vault PDA giữ SOL, commitment tree, nullifier PDA, lịch sử root được chấp nhận và kiểm tra đầu vào giao dịch. Đảm bảo atomicity và bảo toàn lamports.</p></div>
+          <div class="tile"><h3>02 · Proof Verifier</h3><p>Mạch join-split 2-in-2-out: quyền sở hữu, membership proof, nullifier duy nhất, bảo toàn tài sản; xác minh Groth16/BN254 qua cơ chế hỗ trợ của Solana.</p></div>
+          <div class="tile"><h3>03 · SDK &amp; Prover cục bộ</h3><p>Sinh note, Poseidon commitment, mã hóa output bằng viewing key, tạo witness và ZK-proof tại thiết bị. Không tải khóa bí mật lên server.</p></div>
+          <div class="tile"><h3>04 · Relayer độc lập</h3><p>Chỉ nhận transaction/proof đã ràng buộc người nhận, số tiền và phí; thanh toán phí mạng. Relayer không giữ spending key và không được đổi đầu ra.</p></div>
+          <div class="tile"><h3>05 · Cloudflare &amp; GitHub Pages</h3><p>Pages phục vụ giao diện; R2 giữ artifacts công khai có checksum; Workers hỗ trợ API đọc RPC. Không lưu note nhạy cảm, khóa chi tiêu hoặc witness.</p></div>
+          <div class="tile"><h3>06 · Kiểm toán có chọn lọc</h3><p>Viewing key độc lập spending key; sàng lọc và công khai giới hạn ẩn danh. Kiểm toán circuit, smart contract và relayer trước khi thử tài sản thực.</p></div>
+        </div>
+        <div class="smalllinks">
+          <a href="https://github.com/Lightprotocol/groth16-solana" target="_blank" rel="noopener noreferrer">Groth16 Solana ↗</a>
+          <a href="https://solana.com/docs/rpc" target="_blank" rel="noopener noreferrer">Solana RPC ↗</a>
+          <a href="https://github.com/xulytiengviet/solamap" target="_blank" rel="noopener noreferrer">Mã nguồn SolaMap ↗</a>
+        </div>
+      </section>
+      <section id="safety" class="panel">
+        <h2>07 · Phạm vi &amp; giới hạn bảo mật</h2>
+        <div class="notice">Đây là <b>UXTO Privacy Lab bản mô phỏng</b> tích hợp đọc trạng thái Devnet. Không có pool vault thực, không có verifying key, không có Groth16 proof, không có khả năng rút hay chuyển ẩn danh ngoài chuỗi. SHA-256 demo không thay thế Poseidon/circuit ZK.</div>
+        <p>Tất cả số dư, note, commitment, root, nullifier và phí relayer ở phần 01–03 đều <b>giả lập</b>, tách biệt với mục Devnet thực ở phần 04. Không sử dụng dữ liệu màn hình này như bằng chứng tài sản, quyền riêng tư hoặc chứng nhận bảo mật.</p>
+      </section>
+      <div class="footer">SolaMap Privacy Lab · Chế độ Devnet cố định · Trang độc lập, không sửa chức năng ví/gửi SOL/Smart contract đã có.</div>
+    </main>
+  </div>
+</div>
+<script>
+"use strict";
+const $=id=>document.getElementById(id);
+const RPC="https://api.devnet.solana.com";
+const SOL=1000000000n;
+let mode="unshield",notes=[],commitments=[],nullifiers=[],events=[],demoPublic=2n*SOL,demoVault=1400000000n,seedSecret="",busy=false,walletAddress="";
+const encoder=new TextEncoder();
+const hex=bytes=>Array.from(bytes,x=>x.toString(16).padStart(2,"0")).join("");
+const randomHex=()=>hex(crypto.getRandomValues(new Uint8Array(32)));
+async function digest(value){return hex(new Uint8Array(await crypto.subtle.digest("SHA-256",encoder.encode(value))));}
+function parseSOL(raw){const s=String(raw).trim().replace(",",".");if(!/^\d+(?:\.\d{1,9})?$/.test(s))throw Error("Nhập số SOL hợp lệ, tối đa 9 chữ số thập phân.");const parts=s.split(".");const v=BigInt(parts[0])*SOL+BigInt((parts[1]||"").padEnd(9,"0"));if(v>1000n*SOL)throw Error("Giới hạn mô phỏng là 1.000 SOL mỗi lần.");return v;}
+function fmt(v){const a=BigInt(v),i=a/SOL,f=String(a%SOL).padStart(9,"0").replace(/0+$/,"");return i.toString()+(f?"."+f:"")+" SOL";}
+function short(s){return s?String(s).slice(0,11)+"…"+String(s).slice(-8):"—";}
+function message(text,kind="info"){const el=$("simMessage");el.className="notice "+kind;el.textContent=text;}
+function chainMessage(text,kind="info"){const el=$("chainMessage");el.className="notice "+kind;el.textContent=text;}
+function addEvent(text){events.unshift({at:new Date().toLocaleTimeString("vi-VN"),text});events=events.slice(0,30);}
+async function newNote(value,owner){const id=notes.length+1;const salt=randomHex();const commitment=await digest("SolaMap:DEMO:note:v1|"+id+"|"+value+"|"+owner+"|"+salt);const note={id,amount:value,owner,salt,commitment,spent:false,leafIndex:commitments.length};notes.push(note);commitments.push(commitment);return note;}
+async function getRoot(){if(!commitments.length)return "—";let level=await Promise.all(commitments.map(x=>digest("leaf|"+x)));while(level.length>1){const next=[];for(let i=0;i<level.length;i+=2){next.push(await digest("node|"+level[i]+"|"+(level[i+1]||level[i])));}level=next;}return level[0];}
+function pickInputs(needed){const candidates=notes.filter(n=>!n.spent&&n.owner==="self"&&n.amount>0n);let best=null;for(let i=0;i<candidates.length;i++){const one=[candidates[i]],total=one[0].amount;if(total>=needed&&(!best||total<best.sum))best={picked:one,sum:total};for(let j=i+1;j<candidates.length;j++){const pair=[candidates[i],candidates[j]],s=total+candidates[j].amount;if(s>=needed&&(!best||s<best.sum))best={picked:pair,sum:s};}}if(!best)throw Error("Không đủ tối đa 2 note đầu vào. Thử giá trị nhỏ hơn hoặc mô phỏng nạp SOL.");return best;}
+async function spend(note){const nul=await digest("SolaMap:DEMO:nullifier:v1|"+seedSecret+"|"+note.leafIndex+"|"+note.salt);if(nullifiers.includes(nul))throw Error("Nullifier đã tồn tại, mô phỏng chặn double-spend.");note.spent=true;nullifiers.push(nul);}
+function setSummary(items){const wrap=$("lastSummary");wrap.replaceChildren();items.forEach(pair=>{const row=document.createElement("div"),a=document.createElement("span"),b=document.createElement("strong");a.textContent=pair[0];b.textContent=pair[1];row.append(a,b);wrap.appendChild(row);});}
+function setMode(next){mode=next;document.querySelectorAll("[data-mode]").forEach(b=>b.setAttribute("aria-pressed",String(b.dataset.mode===next)));$("recipientField").style.display=next==="shield"?"none":"";$("relayFee").disabled=next!=="unshield";$("simulateBtn").textContent=next==="shield"?"▶ Mô phỏng nạp SOL":next==="transfer"?"▶ Mô phỏng chuyển note":"▶ Mô phỏng rút SOL";setSummary([["Cơ chế",next==="shield"?"ext_amount > 0":next==="transfer"?"ext_amount = 0":"ext_amount < 0"],["Trạng thái","Chưa tạo giao dịch"]]);}
+async function render(){const privateSum=notes.filter(n=>n.owner==="self"&&!n.spent).reduce((a,n)=>a+n.amount,0n);$("demoPublic").textContent=fmt(demoPublic);$("demoPrivate").textContent=fmt(privateSum);$("demoVault").textContent=fmt(demoVault);$("noteCount").textContent=notes.length+" note";$("nullifierCount").textContent="("+nullifiers.length+")";
+ const list=$("noteList");list.replaceChildren();for(const n of notes.slice().reverse()){const card=document.createElement("div");card.className="note";const line=document.createElement("div");line.className="line";const b=document.createElement("b");b.textContent="#"+String(n.id).padStart(3,"0")+" · "+fmt(n.amount);const tag=document.createElement("span");tag.className="tag "+(n.spent?"spent":n.owner==="other"?"sent":"");tag.textContent=n.spent?"Đã tiêu":n.owner==="other"?"Đã chuyển cho người nhận":"Có thể tiêu";line.append(b,tag);const foot=document.createElement("small");foot.textContent="Leaf "+n.leafIndex+" · "+short(n.commitment);card.append(line,foot);list.appendChild(card);}
+ const root=await getRoot();$("merkleRoot").textContent=root;const leaves=$("merkleLeaves");leaves.replaceChildren();commitments.forEach((commit,i)=>{const c=document.createElement("span");c.className="leaf";c.textContent="L"+i+" "+commit.slice(0,8);c.title=commit;leaves.appendChild(c);});
+ const nl=$("nullifierList");nl.replaceChildren();if(!nullifiers.length){const e=document.createElement("div");e.className="empty";e.textContent="Chưa có nullifier.";nl.appendChild(e)}else{nullifiers.slice().reverse().forEach(n=>{const e=document.createElement("div");e.className="code";e.textContent=short(n);e.title=n;nl.appendChild(e)})}
+ const log=$("eventList");log.replaceChildren();if(!events.length){const e=document.createElement("div");e.className="empty";e.textContent="Chưa có giao dịch mô phỏng.";log.appendChild(e)}events.forEach(ev=>{const e=document.createElement("div");e.className="event";const t=document.createElement("time");t.textContent=ev.at;const c=document.createElement("div");c.textContent=ev.text;e.append(t,c);log.appendChild(e);});}
+async function resetDemo(){if(busy)return;busy=true;try{notes=[];commitments=[];nullifiers=[];events=[];demoPublic=2n*SOL;demoVault=1400000000n;seedSecret=randomHex();await newNote(900000000n,"self");await newNote(500000000n,"self");addEvent("Khởi tạo 2 note thử 0,9 và 0,5 SOL trong bộ nhớ.");await render();setMode(mode);message("Đã khởi tạo lại. Đây là số dư giả lập, không có SOL on-chain.","ok")}finally{busy=false;}}
+async function transact(){if(busy)return;busy=true;$("simulateBtn").disabled=true;try{const value=parseSOL($("amount").value),fee=mode==="unshield"?parseSOL($("relayFee").value):0n;if(value<=0n)throw Error("Số SOL phải lớn hơn 0.");const recipient=$("recipient").value.trim();if(mode!=="shield"&&!recipient)throw Error("Nhập tên hoặc địa chỉ nhận minh họa.");let input=[],outputs=[],change=0n,ext=0n;
+ if(mode==="shield"){if(value>demoPublic)throw Error("Số dư công khai giả lập không đủ.");demoPublic-=value;demoVault+=value;outputs.push(await newNote(value,"self"));outputs.push(await newNote(0n,"dummy"));ext=value;addEvent("SHIELD "+fmt(value)+" · 2 dummy input · 2 output (1 note + 1 dummy).");}
+ else{const needed=value+fee;const plan=pickInputs(needed);input=plan.picked;for(const n of input){await spend(n)}change=plan.sum-needed;
+ if(mode==="transfer"){outputs.push(await newNote(value,"other"));outputs.push(await newNote(change,"self"));addEvent("PRIVATE TRANSFER "+fmt(value)+" tới "+recipient+" · "+input.length+" note tiêu; change "+fmt(change)+".");}
+ else{demoPublic+=value;demoVault-=needed;outputs.push(await newNote(change,"self"));outputs.push(await newNote(0n,"dummy"));ext=-value;addEvent("UNSHIELD "+fmt(value)+" tới "+recipient+" · phí relayer giả lập "+fmt(fee)+" · change "+fmt(change)+".");}}
+ const inputTotal=input.reduce((a,n)=>a+n.amount,0n),outputTotal=outputs.reduce((a,n)=>a+n.amount,0n);
+ // ext_amount > 0 is shield; negative is unshield. Fees are external value for unshield.
+ const conserved=mode==="shield"?inputTotal+ext===outputTotal:mode==="transfer"?inputTotal===outputTotal:inputTotal===outputTotal+value+fee;
+ if(!conserved)throw Error("Sai bất biến bảo toàn giá trị trong mô phỏng.");
+ const mask=mode==="shield"?"2 dummy":input.length+" note + "+(2-input.length)+" dummy";
+ setSummary([["Loại giao dịch",mode==="shield"?"Shield":mode==="transfer"?"Chuyển nội bộ":"Unshield"],["ext_amount",mode==="shield"?"+"+fmt(value):mode==="transfer"?"0 SOL":"−"+fmt(value)],["2 input",mask],["2 output",outputs.map(n=>fmt(n.amount)).join(" + ")],["Tiền thừa",fmt(change)],["Phí relayer giả định",fmt(fee)],["Bảo toàn giá trị","ĐẠT (mô phỏng)"],["Groth16 proof","CHƯA TẠO · chỉ SHA-256 demo"]]);message("Mô phỏng hoàn tất. Không ký, không phát transaction và không tạo proof ZK.","ok");await render();
+ }catch(error){message(error.message||String(error),"error");}finally{busy=false;$("simulateBtn").disabled=false;}}
+async function callRpc(method,params){const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),9500);try{const r=await fetch(RPC,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({jsonrpc:"2.0",id:1,method,params:params||[]}),signal:controller.signal});if(!r.ok)throw Error("RPC HTTP "+r.status);const data=await r.json();if(data.error)throw Error(data.error.message||"RPC trả về lỗi");return data.result;}finally{clearTimeout(timer);}}
+async function rpcCheck(){const btn=$("rpcBtn");btn.disabled=true;$("rpcStatus").textContent="Đang kiểm tra…";try{const slot=await callRpc("getSlot",[{commitment:"finalized"}]);$("slotValue").textContent=Number(slot).toLocaleString("vi-VN");$("rpcStatus").textContent="Kết nối Devnet thành công";chainMessage("Đã đọc slot finalized của Devnet. Không có giao dịch nào được gửi đi.","ok");}catch(e){$("rpcStatus").textContent="Không kết nối được";chainMessage("RPC Devnet: "+(e.message||String(e))+". Thử lại hoặc kiểm tra CORS/giới hạn tốc độ.","error");}finally{btn.disabled=false;}}
+async function updateChainBalance(){if(!walletAddress)return;try{const val=await callRpc("getBalance",[walletAddress,{commitment:"finalized"}]);$("chainBalance").textContent=fmt(BigInt(val.value));chainMessage("Đã truy vấn số dư thực của địa chỉ công khai trên Devnet, không ký giao dịch.","ok");}catch(e){$("chainBalance").textContent="Không đọc được";chainMessage("Không lấy được số dư Devnet: "+(e.message||String(e)),"error");}}
+async function connectPhantom(){const provider=(window.phantom&&window.phantom.solana)||window.solana;if(!provider||!provider.isPhantom){chainMessage("Chưa tìm thấy ví Phantom. Có thể dùng nút kiểm tra RPC mà không kết nối ví.","error");return;}try{const response=await provider.connect();walletAddress=String(response.publicKey);$("walletValue").textContent=short(walletAddress);$("walletValue").title=walletAddress;await updateChainBalance();}catch(e){chainMessage("Không kết nối Phantom: "+(e.message||String(e)),"error");}}
+async function inspectProgram(){const value=$("programId").value.trim();if(!/^[1-9A-HJ-NP-Za-km-z]{32,44}$/.test(value)){chainMessage("Program ID phải là chuỗi Base58 hợp lệ về mặt ký tự và độ dài.","error");return;}const btn=$("programBtn");btn.disabled=true;try{const result=await callRpc("getAccountInfo",[value,{encoding:"base64",commitment:"finalized"}]);if(!result.value){chainMessage("Không thấy account program này trên Devnet.","error");}else if(!result.value.executable){chainMessage("Account tồn tại nhưng không được đánh dấu executable. Không thể coi là program đã triển khai.","error");}else{chainMessage("Account executable được tìm thấy trên Devnet, owner: "+result.value.owner+". Đây KHÔNG phải xác nhận shielded pool hoặc Groth16 verifier.","ok");}}catch(e){chainMessage("Không kiểm tra được program: "+(e.message||String(e)),"error");}finally{btn.disabled=false;}}
+function exportDemo(){const report={project:"SolaMap Privacy Lab",type:"MO_PHONG_KHONG_PHAI_PROOF",network:"devnet (RPC read-only)",generatedAt:new Date().toISOString(),hashAlgorithm:"SHA-256 domain separated educational demo, NOT Poseidon",publicDemoLamports:String(demoPublic),vaultDemoLamports:String(demoVault),merkleLeaves:commitments,nullifiers,notes:notes.map(n=>({id:n.id,lamports:String(n.amount),owner:n.owner,spent:n.spent,leafIndex:n.leafIndex,commitment:n.commitment})),events};const blob=new Blob([JSON.stringify(report,null,2)],{type:"application/json"}),url=URL.createObjectURL(blob),a=document.createElement("a");a.href=url;a.download="solamap-privacy-lab-demo.json";a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);}
+document.querySelectorAll("[data-mode]").forEach(button=>button.addEventListener("click",()=>setMode(button.dataset.mode)));
+$("simulateBtn").addEventListener("click",transact);$("resetBtn").addEventListener("click",resetDemo);$("exportBtn").addEventListener("click",exportDemo);
+$("rpcBtn").addEventListener("click",rpcCheck);$("connectBtn").addEventListener("click",connectPhantom);$("programBtn").addEventListener("click",inspectProgram);
+setMode("unshield");resetDemo();
+</script>
+</body>
+</html>
