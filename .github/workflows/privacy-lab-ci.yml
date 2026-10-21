@@ -1,0 +1,31 @@
+name: SolaMap Privacy Lab checks
+on:
+  push:
+    paths:
+      - "privacy-lab.html"
+      - "tests/privacy-lab.test.mjs"
+      - "docs/PRIVACY_LAB_PREDEPLOY_AUDIT.md"
+      - ".github/workflows/privacy-lab-ci.yml"
+  pull_request:
+    paths:
+      - "privacy-lab.html"
+      - "tests/privacy-lab.test.mjs"
+      - "docs/PRIVACY_LAB_PREDEPLOY_AUDIT.md"
+      - ".github/workflows/privacy-lab-ci.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  privacy-lab-simulator:
+    name: Devnet simulator safety checks (not a ZK audit)
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Validate Privacy Lab simulator and Devnet guardrails
+        run: node --test tests/privacy-lab.test.mjs
