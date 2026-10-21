@@ -32,7 +32,7 @@ export class ParallelPrivacySimulator {
   if(!Number.isInteger(feePayers)||feePayers<1||feePayers>64)throw Error("Số fee payer không hợp lệ");
   Object.defineProperties(this,{shards:{value:shards,enumerable:true},domain:{value:domain,enumerable:true},feePayers:{value:feePayers,enumerable:true}});
   this.rootLimit=rootLimit;this.notes=new Map();this.leaves=[];this.acceptedRoots=new Map();this.nullifiers=new Map();this.outputQueues=Array.from({length:shards},()=>[]);
-  this.vault=0n;this.publicPaid=0n;this.relayerPaid=0n;this.committed=[];this.rejected=[];
+  this.vault=0n;this.publicPaid=0n;this.relayerPaid=0n;this.committed=[];this.rejected=[];this.commitBarrier=Promise.resolve();
  }
  async route(value){const h=await hash("SM:ROUTE:"+this.domain+":"+value);return Number(BigInt("0x"+h)%BigInt(this.shards));}
  async makeNote(id,amount,owner){const value=asInt(amount),salt=random(),secret=random();return {id,amount:value,owner,salt,secret,commitment:await hash("SM:NOTE:"+this.domain+":"+id+":"+owner+":"+value+":"+salt),spent:false,index:null};}
@@ -62,6 +62,10 @@ export class ParallelPrivacySimulator {
   return {id,inputIds:[...inputIds],inputs,outputs,outputShards,nullifiers,writes,reads:["root-snapshot:"+snap.root],root:snap.root,type,send,fee:cost,recipient,feePayer,change};
  }
  async commit(tx){
+  // JS reference execution serializes commits. Planner waves model Solana account eligibility, not actual TPS.
+  // This commit barrier also prevents async hash verification from creating a TOCTOU double-spend.
+  const previous=this.commitBarrier;let release;this.commitBarrier=new Promise(resolve=>{release=resolve;});
+  await previous;
   // The actual Solana program must verify a zk-proof; here we verify only demo witness/hash.
   try{
    if(this.committed.some(t=>t.id===tx.id))throw Error("Giao dịch đã ghi");
@@ -85,7 +89,7 @@ export class ParallelPrivacySimulator {
    this.committed.push({id:tx.id,root:tx.root,type:tx.type,read:tx.reads,writes:tx.writes,inputIds:tx.inputIds,outputs:tx.outputs.map(n=>n.id)});
    this.recordRoot(await treeRoot(this.leaves)); // asynchronous root recomputation occurs only after mutation
    return {id:tx.id,ok:true};
-  }catch(error){this.rejected.push({id:tx.id,reason:String(error.message||error)});return {id:tx.id,ok:false,reason:String(error.message||error)};}
+  }catch(error){this.rejected.push({id:tx.id,reason:String(error.message||error)});return {id:tx.id,ok:false,reason:String(error.message||error)};}finally{release();}
  }
  async execute(waves){
   const results=[];for(let wave=0;wave<waves.length;wave++){const settled=await Promise.all(waves[wave].map(tx=>this.commit(tx)));results.push({wave:wave+1,ids:waves[wave].map(tx=>tx.id),results:settled});}
