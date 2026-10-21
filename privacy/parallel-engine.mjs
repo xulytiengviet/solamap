@@ -43,15 +43,15 @@ export function schedule(prepared){
  return waves;
 }
 export class ParallelPrivacySimulator {
- constructor({shards=4,feePayers=4,domain="SOLAMAP:DEVNET:SIM:V1",rootLimit=64}={}){
+ constructor({shards=4,feePayers=4,domain="SOLAMAP:DEVNET:SIM:V1",rootLimit=64,fixtureSeed=null}={}){
   if(![1,2,4,8].includes(shards))throw Error("Chỉ hỗ trợ 1, 2, 4 hoặc 8 vùng trong mô phỏng");
   if(!Number.isInteger(feePayers)||feePayers<1||feePayers>64)throw Error("Số fee payer không hợp lệ");
   Object.defineProperties(this,{shards:{value:shards,enumerable:true},domain:{value:domain,enumerable:true},feePayers:{value:feePayers,enumerable:true}});
-  this.rootLimit=rootLimit;this.notes=new Map();this.leaves=[];this.acceptedRoots=new Map();this.nullifiers=new Map();this.outputQueues=Array.from({length:shards},()=>[]);
+  this.fixtureSeed=fixtureSeed;this.rootLimit=rootLimit;this.notes=new Map();this.leaves=[];this.acceptedRoots=new Map();this.nullifiers=new Map();this.outputQueues=Array.from({length:shards},()=>[]);
   this.vault=0n;this.publicPaid=0n;this.relayerPaid=0n;this.committed=[];this.rejected=[];this.commitBarrier=Promise.resolve();
  }
  async route(value){const h=await hash("SM:ROUTE:"+this.domain+":"+value);return Number(BigInt("0x"+h)%BigInt(this.shards));}
- async makeNote(id,amount,owner){const value=asInt(amount),salt=random(),secret=random();return {id,amount:value,owner,salt,secret,commitment:await hash("SM:NOTE:"+this.domain+":"+id+":"+owner+":"+value+":"+salt),spent:false,index:null};}
+ async makeNote(id,amount,owner){const value=asInt(amount),salt=this.fixtureSeed?await hash("SM:FIXTURE:SALT:"+this.fixtureSeed+":"+id):random(),secret=this.fixtureSeed?await hash("SM:FIXTURE:SECRET:"+this.fixtureSeed+":"+id):random();return {id,amount:value,owner,salt,secret,commitment:await hash("SM:NOTE:"+this.domain+":"+id+":"+owner+":"+value+":"+salt),spent:false,index:null};}
  async initialize(count=12,lamports=1000000000n){
   if(this.leaves.length)throw Error("Pool mô phỏng đã khởi tạo");
   for(let i=0;i<count;i++){const note=await this.makeNote("genesis:"+i,lamports,"self");note.index=this.leaves.length;this.notes.set(note.id,note);this.leaves.push(note.commitment);this.vault+=note.amount;}
@@ -123,7 +123,7 @@ export class ParallelPrivacySimulator {
  reconfigureShards(){throw Error("NO-GO: không đổi K khi tồn tại nullifier; cần migration giữ định tuyến lịch sử");}
 }
 export async function benchmark(shards,{count=16,feePayers=8,includeReplay=true}={}){
- const pool=await new ParallelPrivacySimulator({shards,feePayers}).initialize(Math.max(12,count));
+ const pool=await new ParallelPrivacySimulator({shards,feePayers,fixtureSeed:"SM:COMPARABLE-LOAD:2026-10-21"}).initialize(Math.max(12,count));
  const snapshot=await pool.snapshot();
  const prepared=await Promise.all(Array.from({length:count},(_,i)=>pool.prepare({id:"T"+i,inputIds:["genesis:"+i],amount:300000000n,recipient:"recipient:"+i,feePayer:i%feePayers,snapshot})));
  if(includeReplay){prepared.push(await pool.prepare({id:"REPLAY",inputIds:["genesis:0"],amount:100000000n,recipient:"adversary",feePayer:0,snapshot}));}
