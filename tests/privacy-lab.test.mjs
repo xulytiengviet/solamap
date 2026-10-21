@@ -77,7 +77,7 @@ function harness(fetchMock = async () => { throw new Error('no live network in t
   const run = code => vm.runInContext(code, context, { timeout: 3000 });
   const ready = new Promise(resolve => {
     const poll = () => {
-      if (get('ledgerCheck').textContent.startsWith('ĐẠT')) resolve();
+      if (get('ledgerCheck').textContent.startsWith('ĐẠT') && vm.runInContext('!busy', context)) resolve();
       else setTimeout(poll, 10);
     };
     poll();
