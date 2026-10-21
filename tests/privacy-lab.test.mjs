@@ -7,7 +7,7 @@ import { webcrypto } from 'node:crypto';
 import vm from 'node:vm';
 
 const html = readFileSync(new URL('../privacy-lab.html', import.meta.url), 'utf8');
-const scripts = [...html.matchAll(/<script(?:\s[^>]*)?>([\s\S]*?)<\/script>/g)];
+const scripts = [...html.matchAll(/<script>([\s\S]*?)<\/script>/g)]; // exclude module src script
 assert.equal(scripts.length, 1, 'A single inline Privacy Lab script is expected');
 const source = scripts[0][1];
 
