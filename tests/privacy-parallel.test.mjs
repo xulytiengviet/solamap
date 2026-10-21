@@ -118,3 +118,21 @@ test('relayer scheduler envelope contains no note IDs, secret keys or Merkle wit
  assert.ok(!serialized.includes('commitment'));
  assert.equal(publicData.nullifiers[0],p.nullifiers[0].value);
 });
+
+test('transaction intent rejects tampered withdrawal recipient, fee and output commitment',async()=>{
+ const p=await new ParallelPrivacySimulator({shards:4,feePayers:2}).initialize(4);
+ const snap=await p.snapshot();
+ const a=await p.prepare({id:'WITHDRAW',inputIds:['genesis:0'],amount:250000000n,fee:1000000n,type:'unshield',recipient:'Wallet_A',snapshot:snap});
+ a.recipient='Wallet_Attacker';
+ const failed=await p.commit(a);
+ assert.equal(failed.ok,false);
+ assert.match(failed.reason,/intent/);
+ assert.equal(p.notes.get('genesis:0').spent,false);
+ const b=await p.prepare({id:'WITHDRAW_B',inputIds:['genesis:0'],amount:250000000n,fee:1000000n,type:'unshield',recipient:'Wallet_A',snapshot:snap});
+ b.fee=2000000n;
+ assert.equal((await p.commit(b)).ok,false);
+ const c=await p.prepare({id:'WITHDRAW_C',inputIds:['genesis:0'],amount:250000000n,fee:1000000n,type:'unshield',recipient:'Wallet_A',snapshot:snap});
+ c.outputs[0].amount+=1n;
+ assert.equal((await p.commit(c)).ok,false);
+ assert.equal(p.audit().ok,true);
+});
