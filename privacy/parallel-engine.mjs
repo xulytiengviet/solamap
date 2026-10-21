@@ -72,7 +72,7 @@ export class ParallelPrivacySimulator {
    const rootMeta=this.acceptedRoots.get(tx.root);if(!rootMeta)throw Error("Root lịch sử không còn được chấp nhận");
    let total=0n;for(const inp of tx.inputs){const note=this.notes.get(inp.id);if(!note||note.spent||note.commitment!==inp.commitment||note.index!==inp.index||note.secret!==inp.secret)throw Error("Đầu vào đã tiêu hoặc giả mạo");if(inp.index>=rootMeta.size)throw Error("Leaf nằm ngoài root");if(!await verifyMembership(note.commitment,inp.proof,tx.root))throw Error("Merkle membership không hợp lệ");total+=note.amount;}
    if(new Set(tx.inputIds).size!==tx.inputIds.length)throw Error("Đầu vào trùng");
-   if(total!==tx.send+tx.fee+tx.outputs.reduce((a,n)=>a+n.amount,0n))throw Error("Mất cân bằng giá trị");
+   const outputTotal=tx.outputs.reduce((a,n)=>a+n.amount,0n);if(tx.type==="transfer"?total!==outputTotal:total!==tx.send+tx.fee+outputTotal)throw Error("Mất cân bằng giá trị");
    if(tx.type==="transfer"&&(tx.fee!==0n||tx.outputs[0].amount!==tx.send||tx.outputs[0].owner!==tx.recipient))throw Error("Chuyển riêng tư không hợp lệ");
    if(tx.type==="unshield"&&(tx.outputs[1].amount!==0n||tx.outputs[0].amount!==tx.change))throw Error("Rút SOL không hợp lệ");
    if(tx.nullifiers.length!==tx.inputs.length||tx.outputShards.length!==tx.outputs.length||tx.outputs.length!==2)throw Error("Hình dạng giao dịch không hợp lệ");
