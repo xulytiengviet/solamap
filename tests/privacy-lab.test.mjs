@@ -105,7 +105,7 @@ test('Simulator ledger is conserved across shield, transfer and unshield', async
   h.get('amount').value = '0.2';
   await h.run('transact()');
   assert.equal(h.run('verifyLedger().ok'), true);
-  assert.equal(h.run('demoPublic.toString()'), '1800000000');
+  assert.equal(h.run('demoPublic.toString()'), '1800000000', h.get('simMessage').textContent);
   assert.equal(h.run('demoVault.toString()'), '1600000000');
 
   h.run('setMode("transfer")');
