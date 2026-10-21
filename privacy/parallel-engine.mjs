@@ -87,13 +87,16 @@ export class ParallelPrivacySimulator {
    const correctWrites=[...new Set([...tx.nullifiers.map(n=>"nullifier:"+n.shard),...tx.outputShards.map(s=>"queue:"+s),...(tx.type==="unshield"?["vault:main"]:[]),"fee-payer:"+tx.feePayer])].sort();
    if(JSON.stringify(correctWrites)!==JSON.stringify(tx.writes))throw Error("Account metas bị sửa");
    if(tx.type==="unshield"&&this.vault<tx.send+tx.fee)throw Error("Vault không đủ");
-   // No awaits beyond this line: validation and state update are a single JS critical section.
+   // Compute the next immutable root BEFORE mutation so a hash failure cannot leave partial state.
+   // The JS commit barrier prevents any other simulated commit while the digest is pending.
+   const nextRoot=await treeRoot([...this.leaves,...tx.outputs.map(out=>out.commitment)]);
+   // No awaits beyond this line: synchronous state changes are atomic in the reference simulator.
    for(const input of tx.inputs)this.notes.get(input.id).spent=true;
    for(const item of tx.nullifiers)this.nullifiers.set(item.value,item.shard);
    for(let i=0;i<tx.outputs.length;i++){const out=tx.outputs[i];out.index=this.leaves.length;this.notes.set(out.id,out);this.leaves.push(out.commitment);this.outputQueues[tx.outputShards[i]].push(out.commitment);}
    if(tx.type==="unshield"){this.vault-=tx.send+tx.fee;this.publicPaid+=tx.send;this.relayerPaid+=tx.fee;}
    this.committed.push({id:tx.id,root:tx.root,type:tx.type,read:tx.reads,writes:tx.writes,inputIds:tx.inputIds,outputs:tx.outputs.map(n=>n.id)});
-   this.recordRoot(await treeRoot(this.leaves)); // asynchronous root recomputation occurs only after mutation
+   this.recordRoot(nextRoot); // publish the precomputed root without awaits after state mutation
    return {id:tx.id,ok:true};
   }catch(error){this.rejected.push({id:tx.id,reason:String(error.message||error)});return {id:tx.id,ok:false,reason:String(error.message||error)};}finally{release();}
  }
