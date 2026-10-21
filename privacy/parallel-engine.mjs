@@ -18,9 +18,15 @@ async function membership(leaves,index){
  return siblings;
 }
 async function verifyMembership(commitment,siblings,expectedRoot){let h=await hash("SM:LEAF:"+commitment);for(const sibling of siblings){h=sibling.right?await hash("SM:NODE:"+h+":"+sibling.hash):await hash("SM:NODE:"+sibling.hash+":"+h);}return h===expectedRoot;}
+// The relayer scheduler may inspect ONLY public nullifiers + account locks.
+// Never send prepared.inputs, inputIds, secrets or membership witnesses to a relayer.
+export function publicScheduleEnvelope(tx){
+ return {id:tx.id,nullifiers:tx.nullifiers.map(n=>typeof n==="string"?n:n.value),writes:[...tx.writes],reads:[...tx.reads]};
+}
 export function conflict(a,b){
- const duplicate=intersect(a.nullifiers,b.nullifiers)||intersect(a.inputIds,b.inputIds);
- return duplicate||intersect(a.writes,b.writes)||intersect(a.writes,b.reads)||intersect(b.writes,a.reads);
+ const na=a.nullifiers.map(x=>typeof x==="string"?x:x.value);
+ const nb=b.nullifiers.map(x=>typeof x==="string"?x:x.value);
+ return intersect(na,nb)||intersect(a.writes,b.writes)||intersect(a.writes,b.reads)||intersect(b.writes,a.reads);
 }
 export function schedule(prepared){
  const waves=[];for(const tx of prepared){let placed=false;for(const wave of waves){if(wave.every(other=>!conflict(tx,other))){wave.push(tx);placed=true;break;}}if(!placed)waves.push([tx]);}
@@ -107,7 +113,7 @@ export async function benchmark(shards,{count=16,feePayers=8,includeReplay=true}
  const snapshot=await pool.snapshot();
  const prepared=await Promise.all(Array.from({length:count},(_,i)=>pool.prepare({id:"T"+i,inputIds:["genesis:"+i],amount:300000000n,recipient:"recipient:"+i,feePayer:i%feePayers,snapshot})));
  if(includeReplay){prepared.push(await pool.prepare({id:"REPLAY",inputIds:["genesis:0"],amount:100000000n,recipient:"adversary",feePayer:0,snapshot}));}
- const waves=schedule(prepared),exec=await pool.execute(waves),a=pool.audit();
+ const lookup=new Map(prepared.map(tx=>[tx.id,tx]));const waves=schedule(prepared.map(publicScheduleEnvelope)).map(w=>w.map(envelope=>lookup.get(envelope.id))),exec=await pool.execute(waves),a=pool.audit();
  const results=exec.flatMap(w=>w.results);
  return {shards,count:prepared.length,waves:waves.length,maxWidth:Math.max(...waves.map(w=>w.length)),accepted:results.filter(r=>r.ok).length,rejected:results.filter(r=>!r.ok).length,reasons:results.filter(r=>!r.ok).map(r=>r.reason),serializable:a.ok,rootCount:a.rootCount,queues:a.queues,log:exec,proofsPrepared:prepared.length,noteCount:a.commitments};
 }
