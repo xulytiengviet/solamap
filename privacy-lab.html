@@ -35,7 +35,7 @@
       <a href="#notes">◉ Kho note</a>
       <a href="#merkle">◇ Merkle &amp; nullifier</a>
       <a href="#devnet">⌁ Kết nối Devnet</a>
-      <a href="#architecture">▤ Kiến trúc triển khai</a><a href="#readiness">✓ Rà soát trước triển khai</a>
+      <a href="#parallel">⟁ UTXO song song</a><a href="#architecture">▤ Kiến trúc triển khai</a><a href="#readiness">✓ Rà soát trước triển khai</a>
       <a href="#safety">⚑ Giới hạn &amp; an toàn</a>
       <p class="micro">Độc lập với các chức năng ví và program đang hoạt động tại SolaMap.</p>
     </nav>
@@ -97,6 +97,29 @@
           <div id="nullifierList" class="list"></div>
         </section>
       </div>
+      <section id="parallel" class="panel">
+        <div class="panelhead"><h2>05 · Phòng thí nghiệm UTXO bất biến &amp; thực thi song song</h2><span class="chip purple">SNAPSHOT · SERIALIZABILITY</span></div>
+        <p>Thử mô hình <b>Merkle root lịch sử chỉ đọc + nullifier định tuyến + output queue phân vùng + lập lịch theo xung đột</b>. Tất cả proof trong phần này chỉ là SHA-256 membership mô phỏng; không phải Groth16 hoặc ZK trên Devnet.</p>
+        <div class="notice info"><b>Điểm phân biệt:</b> chuẩn bị witness theo snapshot được thực hiện đồng thời trong mô phỏng; các nhóm không xung đột chỉ <b>dự báo khả năng</b> thực thi song song nếu account metas trên Solana thực sự tách biệt. Việc commit trong JavaScript vẫn tuần tự hóa. Không coi kết quả là TPS thực hoặc benchmark Devnet.</div>
+        <div class="fieldgrid">
+          <div class="field"><label for="parallelCount">Số giao dịch độc lập</label><select id="parallelCount"><option value="8">8 giao dịch</option><option value="16" selected>16 giao dịch</option><option value="24">24 giao dịch</option></select><div class="hint">Thêm yêu cầu chi tiêu trùng để thử chống double-spend.</div></div>
+          <div class="field"><label for="parallelFeePayers">Số fee payer độc lập</label><select id="parallelFeePayers"><option value="1">1 fee payer (nút thắt)</option><option value="8" selected>8 fee payer</option></select><div class="hint">Mô hình account lock; không ký giao dịch thật.</div></div>
+          <div class="field"><label for="parallelSelected">Quan sát nhóm của K vùng</label><select id="parallelSelected"><option value="1">K = 1</option><option value="2">K = 2</option><option value="4" selected>K = 4</option><option value="8">K = 8</option></select></div>
+          <div class="field"><label style="display:flex;gap:10px;align-items:center;margin-top:10px"><input id="parallelReplay" type="checkbox" checked style="width:20px;height:20px;margin:0">Thử chi tiêu trùng note #0</label><div class="hint">Một yêu cầu có thể hợp lệ, yêu cầu còn lại bắt buộc thất bại.</div></div>
+        </div>
+        <div class="buttons"><button class="btn purple" id="parallelRun" type="button">▶ Chạy so sánh K = 1 / 2 / 4 / 8</button><a class="back" href="./docs/PRIVACY_PARALLEL_SERIALIZABILITY.md">Đọc thiết kế &amp; điều kiện kiểm toán ↗</a></div>
+        <div id="parallelStatus" class="notice info" role="status" aria-live="polite">Chưa chạy mô phỏng.</div>
+        <div class="rootbox"><div class="muted">Phân tích sơ bộ</div><div id="parallelOverview">—</div></div>
+        <div style="overflow-x:auto;margin:15px 0"><table id="parallelTable" style="width:100%;border-collapse:collapse;min-width:580px" aria-label="So sánh số vùng nullifier và output queue"></table></div>
+        <h3>Nhóm giao dịch không có xung đột account</h3>
+        <div id="parallelWaves" class="events" style="max-height:360px"></div>
+        <div class="tiles" style="margin-top:17px">
+          <div class="tile"><h3>Snapshot bất biến</h3><p>Proof mô phỏng cùng đọc Merkle root lịch sử hợp lệ; ghi thêm output không làm mất membership của note cũ.</p></div>
+          <div class="tile"><h3>Nullifier phân vùng</h3><p>Vùng đích = SHA-256(domain | nullifier) mod K; client không chọn vùng. K cố định trong phiên; thay K cần migration chống replay.</p></div>
+          <div class="tile"><h3>Queue phân vùng</h3><p>Đầu ra phân vùng theo commitment; mỗi queue mô phỏng một account ghi khác nhau. Khác nullifier nhưng ghi cùng queue vẫn tranh chấp.</p></div>
+          <div class="tile"><h3>Vault tách biệt</h3><p>Chuyển private nội bộ không ghi vault; unshield mới cần write lock vault. Fee payer dùng chung cũng gây xung đột.</p></div>
+        </div>
+      </section>
       <section id="devnet" class="panel">
         <div class="panelhead"><h2>04 · Solana Devnet · Trạng thái thực</h2><span class="network">CHỈ ĐỌC RPC</span></div>
         <p class="muted">Truy vấn RPC cố định <span class="code">https://api.devnet.solana.com</span>. Có thể kết nối Phantom để lấy <b>địa chỉ công khai</b>; không yêu cầu ký, không truy cập seed phrase, không chuyển SOL. Nếu Phantom đang dùng mạng khác, số dư hiển thị tại đây vẫn chỉ lấy từ Devnet.</p>
@@ -204,5 +227,6 @@ $("simulateBtn").addEventListener("click",transact);$("resetBtn").addEventListen
 $("rpcBtn").addEventListener("click",rpcCheck);$("connectBtn").addEventListener("click",connectPhantom);$("programBtn").addEventListener("click",inspectProgram);
 setMode("unshield");resetDemo();
 </script>
+<script type="module" src="./privacy/parallel-ui.mjs"></script>
 </body>
 </html>
