@@ -136,3 +136,13 @@ test('transaction intent rejects tampered withdrawal recipient, fee and output c
  assert.equal((await p.commit(c)).ok,false);
  assert.equal(p.audit().ok,true);
 });
+
+test('benchmark workload is reproducible with identical note commitments across shard configurations',async()=>{
+ const a=await benchmark(4,{count:8,feePayers:8,includeReplay:true});
+ const b=await benchmark(4,{count:8,feePayers:8,includeReplay:true});
+ assert.deepEqual({waves:a.waves,maxWidth:a.maxWidth,queues:a.queues,reasons:a.reasons},
+                  {waves:b.waves,maxWidth:b.maxWidth,queues:b.queues,reasons:b.reasons});
+ const c=await benchmark(8,{count:8,feePayers:8,includeReplay:true});
+ assert.equal(c.noteCount,a.noteCount);
+ assert.equal(c.accepted,a.accepted);
+});
