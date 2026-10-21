@@ -23,6 +23,16 @@ async function verifyMembership(commitment,siblings,expectedRoot){let h=await ha
 export function publicScheduleEnvelope(tx){
  return {id:tx.id,nullifiers:tx.nullifiers.map(n=>typeof n==="string"?n:n.value),writes:[...tx.writes],reads:[...tx.reads]};
 }
+// Educational intent digest only; a production circuit must bind the same public inputs.
+async function intentDigest(tx,domain){
+ return hash(JSON.stringify({
+  domain,id:tx.id,root:tx.root,type:tx.type,send:String(tx.send),fee:String(tx.fee),
+  recipient:tx.recipient,feePayer:tx.feePayer,
+  nullifiers:tx.nullifiers.map(n=>[n.value,n.shard]),
+  outputs:tx.outputs.map(n=>[n.id,n.commitment,String(n.amount),n.owner]),
+  queueShards:tx.outputShards
+ }));
+}
 export function conflict(a,b){
  const na=a.nullifiers.map(x=>typeof x==="string"?x:x.value);
  const nb=b.nullifiers.map(x=>typeof x==="string"?x:x.value);
@@ -65,7 +75,7 @@ export class ParallelPrivacySimulator {
   const nullifiers=await Promise.all(inputs.map(async n=>({id:n.id,value:await this.nullifier(n),shard:await this.route(await this.nullifier(n))})));
   const outputShards=await Promise.all(outputs.map(n=>this.route(n.commitment)));
   const writes=[...new Set([...nullifiers.map(n=>"nullifier:"+n.shard),...outputShards.map(s=>"queue:"+s),...(type==="unshield"?["vault:main"]:[]), "fee-payer:"+feePayer])].sort();
-  return {id,inputIds:[...inputIds],inputs,outputs,outputShards,nullifiers,writes,reads:["root-snapshot:"+snap.root],root:snap.root,type,send,fee:cost,recipient,feePayer,change};
+  const prepared={id,inputIds:[...inputIds],inputs,outputs,outputShards,nullifiers,writes,reads:["root-snapshot:"+snap.root],root:snap.root,type,send,fee:cost,recipient,feePayer,change};prepared.intentDigest=await intentDigest(prepared,this.domain);return prepared;
  }
  async commit(tx){
   // JS reference execution serializes commits. Planner waves model Solana account eligibility, not actual TPS.
@@ -75,6 +85,7 @@ export class ParallelPrivacySimulator {
   // The actual Solana program must verify a zk-proof; here we verify only demo witness/hash.
   try{
    if(this.committed.some(t=>t.id===tx.id))throw Error("Giao dịch đã ghi");
+   if(!["transfer","unshield"].includes(tx.type)||tx.intentDigest!==await intentDigest(tx,this.domain))throw Error("Public transaction intent đã bị thay đổi");
    const rootMeta=this.acceptedRoots.get(tx.root);if(!rootMeta)throw Error("Root lịch sử không còn được chấp nhận");
    let total=0n;for(const inp of tx.inputs){const note=this.notes.get(inp.id);if(!note||note.spent||note.commitment!==inp.commitment||note.index!==inp.index||note.secret!==inp.secret)throw Error("Đầu vào đã tiêu hoặc giả mạo");if(inp.index>=rootMeta.size)throw Error("Leaf nằm ngoài root");if(!await verifyMembership(note.commitment,inp.proof,tx.root))throw Error("Merkle membership không hợp lệ");total+=note.amount;}
    if(new Set(tx.inputIds).size!==tx.inputIds.length)throw Error("Đầu vào trùng");
