@@ -1,6 +1,6 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
-import { ParallelPrivacySimulator, benchmark, schedule, conflict } from '../privacy/parallel-engine.mjs';
+import { ParallelPrivacySimulator, benchmark, schedule, conflict, publicScheduleEnvelope } from '../privacy/parallel-engine.mjs';
 
 test('1, 2, 4, 8 shards preserve vault solvency, and replay is rejected', async () => {
  for(const shards of [1,2,4,8]){
@@ -104,4 +104,17 @@ test('dependent transaction can only prepare after its parent output is committe
  const d=await p.prepare({id:'D',inputIds:['A:0'],amount:100000000n});
  assert.equal((await p.commit(d)).ok,true);
  assert.equal(p.audit().ok,true);
+});
+
+test('relayer scheduler envelope contains no note IDs, secret keys or Merkle witnesses',async()=>{
+ const pool=await new ParallelPrivacySimulator({shards:4}).initialize(2);
+ const p=await pool.prepare({id:'PRIVACY',inputIds:['genesis:0'],amount:100000000n});
+ const publicData=publicScheduleEnvelope(p);
+ assert.deepEqual(Object.keys(publicData).sort(),['id','nullifiers','reads','writes']);
+ const serialized=JSON.stringify(publicData);
+ assert.ok(!serialized.includes('genesis:0'));
+ assert.ok(!serialized.includes(p.inputs[0].secret));
+ assert.ok(!serialized.includes('proof'));
+ assert.ok(!serialized.includes('commitment'));
+ assert.equal(publicData.nullifiers[0],p.nullifiers[0].value);
 });
